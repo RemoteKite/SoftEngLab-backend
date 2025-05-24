@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-/src/test/java/com/harukite/canteen/CanteenApplicationTests.java
+src/test/java/com/harukite/canteen/CanteenApplicationTests.java
+src/main/resources/application.properties
 
