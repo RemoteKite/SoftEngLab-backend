@@ -3,6 +3,7 @@ package com.harukite.canteen.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -81,15 +82,15 @@ public class GlobalExceptionHandler
     }
 
     /**
-     * 处理 UnauthorizedException 异常。
+     * 处理 AuthenticationException 异常。
      * 映射到 HTTP 401 Unauthorized。
      *
-     * @param ex      UnauthorizedException 实例
+     * @param ex      AuthenticationException 实例
      * @param request WebRequest 实例
      * @return 包含错误详情的 ResponseEntity
      */
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorDetails> handleUnauthorizedException(UnauthorizedException ex, WebRequest request)
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorDetails> handleUnauthorizedException(AuthenticationException ex, WebRequest request)
     {
         ErrorDetails errorDetails = new ErrorDetails(
                 LocalDateTime.now(),
