@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -74,10 +75,19 @@ public class SecurityConfig
 
         http
                 .csrf(csrf -> csrf.disable()) // 禁用 CSRF，因为我们使用 JWT 进行无状态认证
+                .cors(Customizer.withDefaults()) // !!! 关键：启用 CORS 配置，它会查找 CorsConfigurationSource 或 WebMvcConfigurer Bean
                 .authorizeHttpRequests(authorize -> authorize
                         // 允许匿名访问的公共接口，例如注册和登录
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/canteens/**").permitAll()
+                        // 允许所有用户访问 /api/canteens 下的所有路径
+                        .requestMatchers("/api/canteens/**").permitAll() // 确保这条规则在更具体的规则之前
+                        // 允许 Swagger UI 和 API 文档访问 (如果需要)
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/webjars/**"
+                        ).permitAll()
                         // 管理员接口需要 'ADMIN' 角色
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // 其他所有请求都需要认证

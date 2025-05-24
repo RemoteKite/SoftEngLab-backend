@@ -5,7 +5,6 @@ import com.harukite.canteen.dto.LoginRequest;
 import com.harukite.canteen.dto.UserRegistrationRequest;
 import com.harukite.canteen.dto.UserResponseDto;
 import com.harukite.canteen.exception.DuplicateEntryException;
-import com.harukite.canteen.exception.InvalidInputException;
 import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.Allergen;
 import com.harukite.canteen.model.DietaryTag;
@@ -21,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -120,8 +120,8 @@ public class UserServiceImpl implements UserService
      *
      * @param request 登录请求 DTO
      * @return 认证响应 DTO (包含 JWT token 和用户基本信息)
-     * @throws ResourceNotFoundException 如果用户不存在
-     * @throws InvalidInputException     如果密码不匹配
+     * @throws AuthenticationException   如果验证不成功
+     * @throws ResourceNotFoundException 如果找不到用户信息
      */
     @Override
     @Transactional(readOnly = true)
