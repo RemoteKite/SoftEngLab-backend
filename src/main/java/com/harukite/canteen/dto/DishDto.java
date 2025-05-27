@@ -17,13 +17,14 @@ import java.util.Set;
 @AllArgsConstructor
 public class DishDto
 {
-    private String dishId;
     private String canteenId; // Only ID, full Canteen object might not be needed
     private String name;
     private String description;
     private BigDecimal price;
     private String imageUrl;
-    private Boolean isAvailable;
+    //TODO Below fields are used in response,consider splitting into separate DTOs if needed
+    private String dishId;
+    private Boolean isAvailable; //暂未使用，考虑弃用
     private LocalDateTime createdAt;
     private Set<String> dietaryTagNames; // List of dietary tag names
     private Set<String> allergenNames; // List of allergen names

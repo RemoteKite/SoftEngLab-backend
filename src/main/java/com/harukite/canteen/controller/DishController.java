@@ -27,7 +27,7 @@ public class DishController
     private final DishService dishService;
 
     /**
-     * 创建新菜品。
+     * 创建新菜品。目前的实现允许菜品重名
      * URL: POST /api/dishes
      * Content-Type: multipart/form-data
      * (需要管理员或工作人员权限)

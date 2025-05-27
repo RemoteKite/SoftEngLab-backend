@@ -114,6 +114,7 @@ public class DishServiceImpl implements DishService
         }
 
         Dish savedDish = dishRepository.save(dish);
+        dishRepository.flush();
         return convertToDto(savedDish);
     }
 
@@ -379,12 +380,12 @@ public class DishServiceImpl implements DishService
         }
 
         return new DishDto(
-                dish.getDishId(),
                 dish.getCanteen().getCanteenId(),
                 dish.getName(),
                 dish.getDescription(),
                 dish.getPrice(),
                 dish.getImageUrl(), // 使用数据库存储的 URL
+                dish.getDishId(),
                 dish.getIsAvailable(),
                 dish.getCreatedAt(),
                 dietaryTagNames,
