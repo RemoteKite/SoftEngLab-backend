@@ -18,7 +18,7 @@ import java.util.List;
  * 提供每日菜谱的发布、查询、更新和删除的 API 接口。
  */
 @RestController
-@RequestMapping("/api/daily-menus")
+@RequestMapping("/api/menu")
 @RequiredArgsConstructor
 public class DailyMenuController
 {
@@ -27,7 +27,7 @@ public class DailyMenuController
 
     /**
      * 发布每日菜谱。
-     * URL: POST /api/daily-menus
+     * URL: POST /api/menu
      * (需要管理员或工作人员权限)
      *
      * @param request 菜谱发布请求 DTO
@@ -37,15 +37,15 @@ public class DailyMenuController
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能发布菜谱
     public ResponseEntity<DailyMenuResponse> publishDailyMenu(@Valid @RequestBody DailyMenuRequest request)
     {
-        // 假设 publisherId 从认证上下文中获取
-        String publisherId = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        DailyMenuResponse publishedMenu = dailyMenuService.publishDailyMenu(request, publisherId);
+        // 假设 publisherName 从认证上下文中获取
+        String publisherName = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        DailyMenuResponse publishedMenu = dailyMenuService.publishDailyMenu(request, publisherName);
         return new ResponseEntity<>(publishedMenu, HttpStatus.CREATED);
     }
 
     /**
      * 根据食堂ID和日期获取每日菜谱列表。
-     * URL: GET /api/daily-menus/canteen/{canteenId}/date/{menuDate}
+     * URL: GET /api/menu/canteen/{canteenId}/date/{menuDate}
      * (任何已认证用户或匿名用户都可以查看)
      *
      * @param canteenId 食堂ID
@@ -64,7 +64,7 @@ public class DailyMenuController
 
     /**
      * 根据菜谱ID获取菜谱详情。
-     * URL: GET /api/daily-menus/{id}
+     * URL: GET /api/menu/{id}
      * (任何已认证用户或匿名用户都可以查看)
      *
      * @param id 菜谱ID
@@ -80,7 +80,7 @@ public class DailyMenuController
 
     /**
      * 更新每日菜谱。
-     * URL: PUT /api/daily-menus/{id}
+     * URL: PUT /api/menu/{id}
      * (需要管理员或工作人员权限)
      *
      * @param id      要更新的菜谱ID
@@ -99,7 +99,7 @@ public class DailyMenuController
 
     /**
      * 删除每日菜谱。
-     * URL: DELETE /api/daily-menus/{id}
+     * URL: DELETE /api/menu/{id}
      * (需要管理员或工作人员权限)
      *
      * @param id 要删除的菜谱ID

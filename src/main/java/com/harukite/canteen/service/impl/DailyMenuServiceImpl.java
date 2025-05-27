@@ -43,19 +43,19 @@ public class DailyMenuServiceImpl implements DailyMenuService
      * 发布每日菜谱。
      *
      * @param request     菜谱发布请求 DTO
-     * @param publisherId 发布者用户ID
+     * @param publisherName 发布者用户名
      * @return 发布成功的菜谱响应 DTO
      * @throws ResourceNotFoundException 如果食堂、发布者或菜品不存在
      * @throws DuplicateEntryException   如果指定食堂、日期和时间段的菜谱已存在
      */
     @Override
     @Transactional
-    public DailyMenuResponse publishDailyMenu(DailyMenuRequest request, String publisherId)
+    public DailyMenuResponse publishDailyMenu(DailyMenuRequest request, String publisherName)
     {
         Canteen canteen = canteenRepository.findById(request.getCanteenId())
                 .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + request.getCanteenId()));
-        User publisher = userRepository.findById(publisherId)
-                .orElseThrow(() -> new ResourceNotFoundException("Publisher user not found with ID: " + publisherId));
+        User publisher = userRepository.findByUsername(publisherName)
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher user not found with Name: " + publisherName));
 
         // 检查指定食堂、日期和时间段的菜谱是否已存在
         if (dailyMenuRepository.findByCanteenAndMenuDateAndStartTimeAndEndTime(
@@ -80,6 +80,7 @@ public class DailyMenuServiceImpl implements DailyMenuService
         dailyMenu.setDishes(dishes); // 设置菜品集合
 
         DailyMenu savedMenu = dailyMenuRepository.save(dailyMenu);
+        dailyMenuRepository.flush();
         return convertToDto(savedMenu);
     }
 

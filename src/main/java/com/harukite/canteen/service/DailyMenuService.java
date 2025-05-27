@@ -17,10 +17,10 @@ public interface DailyMenuService
      * 发布每日菜谱。
      *
      * @param request     菜谱发布请求 DTO
-     * @param publisherId 发布者用户ID
+     * @param publisherName 发布者用户名
      * @return 发布成功的菜谱响应 DTO
      */
-    DailyMenuResponse publishDailyMenu(DailyMenuRequest request, String publisherId);
+    DailyMenuResponse publishDailyMenu(DailyMenuRequest request, String publisherName);
 
     /**
      * 根据食堂ID和日期获取每日菜谱列表。
