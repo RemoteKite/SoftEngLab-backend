@@ -32,6 +32,12 @@ public interface DailyMenuService
     List<DailyMenuResponse> getDailyMenusByCanteenAndDate(String canteenId, LocalDate menuDate);
 
     /**
+     * 获取菜谱列表。
+     * @return 每日菜谱响应 DTO 列表
+     */
+    List<DailyMenuResponse> getAllDailyMenus();
+
+    /**
      * 根据菜谱ID获取菜谱详情。
      *
      * @param menuId 菜谱ID

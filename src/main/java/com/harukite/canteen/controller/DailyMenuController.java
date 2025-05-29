@@ -45,20 +45,35 @@ public class DailyMenuController
 
     /**
      * 根据食堂ID和日期获取每日菜谱列表。
-     * URL: GET /api/menu/canteen/{canteenId}/date/{menuDate}
+     * URL: GET /api/menu/canteen/{canteenId}/{menuDate}
      * (任何已认证用户或匿名用户都可以查看)
      *
      * @param canteenId 食堂ID
      * @param menuDate  菜谱日期 (格式:YYYY-MM-DD)
      * @return 每日菜谱响应 DTO 列表
      */
-    @GetMapping("/canteen/{canteenId}/date/{menuDate}")
+    @GetMapping("/canteen/{canteenId}/{menuDate}")
     @PreAuthorize("permitAll()") // 允许所有用户访问
     public ResponseEntity<List<DailyMenuResponse>> getDailyMenusByCanteenAndDate(
             @PathVariable String canteenId,
             @PathVariable LocalDate menuDate)
     {
         List<DailyMenuResponse> dailyMenus = dailyMenuService.getDailyMenusByCanteenAndDate(canteenId, menuDate);
+        return ResponseEntity.ok(dailyMenus);
+    }
+
+    /**
+     * 获取所有每日菜谱列表。
+     * URL: GET /api/menu
+     * (任何已认证用户或匿名用户都可以查看)
+     *
+     * @return 每日菜谱响应 DTO 列表
+     */
+    @GetMapping
+    @PreAuthorize("permitAll()") // 允许所有用户访问
+    public ResponseEntity<List<DailyMenuResponse>> getAllDailyMenus()
+    {
+        List<DailyMenuResponse> dailyMenus = dailyMenuService.getAllDailyMenus();
         return ResponseEntity.ok(dailyMenus);
     }
 
