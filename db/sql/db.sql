@@ -396,6 +396,15 @@ COMMENT ON TABLE Banquet_Reservation_Packages IS '宴会预订中选择的套餐
 COMMENT ON COLUMN Banquet_Reservation_Packages.banquet_id IS '宴会预订ID';
 COMMENT ON COLUMN Banquet_Reservation_Packages.package_id IS '套餐ID';
 
+CREATE TABLE Canteen_Images
+(
+    image_id    VARCHAR(255) PRIMARY KEY,
+    canteen_id  VARCHAR(255) NOT NULL,
+    image_url   VARCHAR(255) NOT NULL,
+    description VARCHAR(255),
+    upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (canteen_id) REFERENCES Canteens(canteen_id) ON DELETE CASCADE
+);
 
 -- 索引（可选，但推荐用于提高查询性能）
 CREATE INDEX idx_users_role ON Users (role);

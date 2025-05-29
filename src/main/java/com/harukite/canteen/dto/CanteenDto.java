@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * DTO for Canteen information.
  * Used for displaying canteen details.
@@ -20,5 +22,6 @@ public class CanteenDto
     private String openingHours;
     private String contactPhone;
     private String imageUrl;
+    private List<CanteenImageDto> additionalImages;
 }
 

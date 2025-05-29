@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.UUID;
+import java.util.Set;
 
 /**
  * 食堂实体类，对应数据库中的 'canteens' 表。
@@ -61,6 +63,15 @@ public class Canteen
      */
     @Column(name = "image_url")
     private String imageUrl;
+
+    /**
+     * 与食堂额外图片 (CanteenImage) 的一对多关系。
+     * mappedBy 指向 CanteenImage 实体中拥有关系管理权的字段名称 ("canteen")。
+     * CascadeType.ALL 表示对 Canteen 的操作（如保存、删除）会级联到 CanteenImage。
+     * orphanRemoval = true 表示如果从集合中移除 CanteenImage，它也会从数据库中删除。
+     */
+    @OneToMany(mappedBy = "canteen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<CanteenImage> additionalImages = new HashSet<>(); // 新增：额外图片集合
 
     /**
      * 在实体持久化前，自动为 canteenId 生成一个 UUID。
