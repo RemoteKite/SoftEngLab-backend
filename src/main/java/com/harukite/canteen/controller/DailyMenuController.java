@@ -69,7 +69,7 @@ public class DailyMenuController
      *
      * @return 每日菜谱响应 DTO 列表
      */
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("permitAll()") // 允许所有用户访问
     public ResponseEntity<List<DailyMenuResponse>> getAllDailyMenus()
     {
