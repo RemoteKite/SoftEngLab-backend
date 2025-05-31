@@ -250,6 +250,7 @@ public class DishServiceImpl implements DishService
         }
 
         Dish savedDish = dishRepository.save(existingDish);
+        dishRepository.flush(); // 确保所有更改都被持久化到数据库
         return convertToDto(savedDish);
     }
 
@@ -274,6 +275,7 @@ public class DishServiceImpl implements DishService
         }
 
         dishRepository.delete(dishToDelete);
+        dishRepository.flush(); // 确保所有更改都被持久化到数据库
     }
 
     /**

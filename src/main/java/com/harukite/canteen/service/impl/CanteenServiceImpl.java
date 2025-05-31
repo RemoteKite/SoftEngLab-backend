@@ -77,6 +77,7 @@ public class CanteenServiceImpl implements CanteenService
         }
 
         Canteen savedCanteen = canteenRepository.save(canteen);
+        canteenRepository.flush();
         return convertToDto(savedCanteen);
     }
 
@@ -176,6 +177,7 @@ public class CanteenServiceImpl implements CanteenService
         // 如果 imageFile 为 null 且 updatedCanteenDto.getImageUrl() 也为 null，则保持不变
 
         Canteen savedCanteen = canteenRepository.save(existingCanteen);
+        canteenRepository.flush(); // 确保数据立即写入数据库
         return convertToDto(savedCanteen);
     }
 
