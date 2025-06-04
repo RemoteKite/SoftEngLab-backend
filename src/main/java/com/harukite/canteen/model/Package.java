@@ -18,8 +18,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Package
-{
+public class Package {
 
     /**
      * 套餐唯一ID，作为主键。
@@ -30,9 +29,17 @@ public class Package
     private String packageId;
 
     /**
-     * 套餐名称，不允许为空且唯一。
+     * 所属食堂。多对一关系。
      */
-    @Column(name = "name", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "canteen_id", nullable = false) // 新增：关联食堂
+    private Canteen canteen;
+
+    /**
+     * 套餐名称，不允许为空。
+     * 注意：name 不再是全局唯一的，而是相对于所属食堂唯一。
+     */
+    @Column(name = "name", nullable = false)
     private String name;
 
     /**
@@ -63,10 +70,8 @@ public class Package
      * 在实体持久化前，自动为 packageId 生成一个 UUID。
      */
     @PrePersist
-    protected void onCreate()
-    {
-        if (this.packageId == null)
-        {
+    protected void onCreate() {
+        if (this.packageId == null) {
             this.packageId = UUID.randomUUID().toString();
         }
     }

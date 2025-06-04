@@ -1,5 +1,6 @@
 package com.harukite.canteen.repository;
 
+import com.harukite.canteen.model.Canteen;
 import com.harukite.canteen.model.Package;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,23 +13,23 @@ import java.util.Optional;
  * 继承 JpaRepository，提供 Package 实体的 CRUD 操作。
  */
 @Repository
-public interface PackageRepository extends JpaRepository<Package, String>
-{
+public interface PackageRepository extends JpaRepository<Package, String> {
 
     /**
-     * 根据套餐名称查找套餐。
+     * 根据套餐名称和所属食堂查找套餐。
+     * 用于检查套餐名称在特定食堂内是否唯一。
      *
      * @param name 套餐名称
+     * @param canteen 所属食堂实体
      * @return 包含套餐的 Optional 对象，如果未找到则为空
      */
-    Optional<Package> findByName(String name);
+    Optional<Package> findByNameAndCanteen(String name, Canteen canteen);
 
     /**
-     * 根据价格范围查找套餐。
+     * 根据所属食堂查找套餐列表。
      *
-     * @param minPrice 最低价格
-     * @param maxPrice 最高价格
+     * @param canteen 食堂实体
      * @return 套餐列表
      */
-    List<Package> findByPriceBetween(java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice);
+    List<Package> findByCanteen(Canteen canteen);
 }

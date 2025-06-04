@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * 宴会预订服务接口的实现类。
  * 包含宴会预订的创建、查询、更新和取消等业务逻辑。
  */
-@Service
+@Service("banquetReservationService")
 @RequiredArgsConstructor
 public class BanquetReservationServiceImpl implements BanquetReservationService
 {
@@ -49,17 +49,17 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 创建新的宴会预订。
      *
      * @param request 包含预订信息的 DTO
-     * @param userId  预订用户ID
+     * @param userName  预订用户名
      * @return 创建成功的宴会预订响应 DTO
      * @throws ResourceNotFoundException 如果用户、食堂、包厢、菜品或套餐不存在
      * @throws InvalidInputException     如果包厢不可用或人数无效
      */
     @Override
     @Transactional
-    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userId)
+    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userName)
     {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
         Canteen canteen = canteenRepository.findById(request.getCanteenId())
                 .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + request.getCanteenId()));
 
@@ -321,20 +321,22 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 取消宴会预订。
      *
      * @param banquetId 宴会预订ID
-     * @param userId    操作用户ID (用于权限检查，确保只有预订所有者或管理员可以取消)
+     * @param userName    操作用户名 (用于权限检查，确保只有预订所有者或管理员可以取消)
      * @throws ResourceNotFoundException 如果宴会预订不存在
      * @throws InvalidInputException     如果预订状态不允许取消或用户没有权限
      */
     @Override
     @Transactional
-    public void cancelBanquetReservation(String banquetId, String userId)
+    public void cancelBanquetReservation(String banquetId, String userName)
     {
         BanquetReservation reservation = banquetReservationRepository.findById(banquetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
+        // 从数据库中获取当前用户信息
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
 
         // 权限检查：确保只有预订所有者或管理员才能取消
-        // 实际应用中，这里需要通过 Spring Security 获取当前用户的角色进行判断
-        if (!reservation.getUser().getUserId().equals(userId) /* && !currentUserIsAdmin */)
+        if (!reservation.getUser().getUsername().equals(userName) && !(user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF))
         {
             throw new InvalidInputException("You are not authorized to cancel this reservation.");
         }

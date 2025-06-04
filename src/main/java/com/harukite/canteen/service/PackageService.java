@@ -8,8 +8,7 @@ import java.util.List;
  * 宴会套餐服务接口。
  * 定义套餐的创建、查询、更新和删除操作。
  */
-public interface PackageService
-{
+public interface PackageService {
 
     /**
      * 创建新套餐。
@@ -35,9 +34,17 @@ public interface PackageService
     List<PackageDto> getAllPackages();
 
     /**
+     * 根据食堂ID获取套餐列表。
+     *
+     * @param canteenId 食堂ID
+     * @return 套餐 DTO 列表
+     */
+    List<PackageDto> getPackagesByCanteenId(String canteenId); // 新增方法
+
+    /**
      * 更新套餐信息。
      *
-     * @param packageId         要更新的套餐ID
+     * @param packageId 要更新的套餐ID
      * @param updatedPackageDto 包含更新信息的套餐 DTO
      * @return 更新后的套餐 DTO
      */

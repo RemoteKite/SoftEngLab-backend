@@ -295,16 +295,19 @@ COMMENT ON COLUMN Rooms.base_fee IS '包厢基础费用';
 
 
 -- 16. 宴会套餐表 (Packages)
-CREATE TABLE Packages
-(
+CREATE TABLE Packages (
     package_id  VARCHAR(255) PRIMARY KEY,
-    name        VARCHAR(100)   NOT NULL UNIQUE,
+    canteen_id  VARCHAR(255) NOT NULL, -- 新增：所属食堂ID
+    name        VARCHAR(100) NOT NULL,
     description TEXT,
-    price       DECIMAL(10, 2) NOT NULL
+    price       DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (canteen_id) REFERENCES Canteens(canteen_id), -- 新增：外键约束
+    UNIQUE (name, canteen_id) -- 新增：复合唯一性约束
 );
 COMMENT ON TABLE Packages IS '宴会套餐表';
 COMMENT ON COLUMN Packages.package_id IS '套餐唯一ID';
-COMMENT ON COLUMN Packages.name IS '套餐名称';
+COMMENT ON COLUMN Packages.canteen_id IS '所属食堂ID'; -- 新增：注释
+COMMENT ON COLUMN Packages.name IS '套餐名称（在所属食堂内唯一）'; -- 修改：注释
 COMMENT ON COLUMN Packages.description IS '套餐描述';
 COMMENT ON COLUMN Packages.price IS '套餐价格';
 

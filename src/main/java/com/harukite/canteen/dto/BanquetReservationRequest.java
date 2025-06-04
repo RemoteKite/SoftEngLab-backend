@@ -48,9 +48,9 @@ public class BanquetReservationRequest
     private String purpose;
 
     // 定制菜单选项
-    private List<String> selectedDishIds; // 修正：使用 selectedDishIds
+    private List<String> selectedDishIds;
 
-    private List<String> selectedPackageIds; // 修正：使用 selectedPackageIds
+    private List<String> selectedPackageIds;
 
     private Boolean hasBirthdayCake;
 
