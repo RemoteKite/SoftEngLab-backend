@@ -19,10 +19,10 @@ public interface BanquetReservationService
      * 创建新的宴会预订。
      *
      * @param request 包含预订信息的 DTO
-     * @param userName  预订用户名
+     * @param userId  预订用户名
      * @return 创建成功的宴会预订响应 DTO
      */
-    BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userName);
+    BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userId);
 
     /**
      * 根据预订ID获取宴会预订详情。
@@ -77,9 +77,9 @@ public interface BanquetReservationService
      * 取消宴会预订。
      *
      * @param banquetId 宴会预订ID
-     * @param userName    操作用户名 (用于权限检查)
+     * @param userId    操作用户名 (用于权限检查)
      */
-    void cancelBanquetReservation(String banquetId, String userName);
+    void cancelBanquetReservation(String banquetId, String userId);
 
     /**
      * 检查某个包厢在指定日期和时间段是否可用。

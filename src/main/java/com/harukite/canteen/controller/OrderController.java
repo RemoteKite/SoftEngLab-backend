@@ -2,7 +2,10 @@ package com.harukite.canteen.controller;
 
 import com.harukite.canteen.dto.OrderRequest;
 import com.harukite.canteen.dto.OrderResponse;
+import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.OrderStatus;
+import com.harukite.canteen.model.User;
+import com.harukite.canteen.repository.UserRepository;
 import com.harukite.canteen.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class OrderController
 {
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
 
     /**
      * 创建新订单。
@@ -38,8 +42,9 @@ public class OrderController
     {
         // 从 Spring Security 认证上下文中获取当前用户ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName(); // 通常情况下，getName() 返回的是用户名，如果您的User实体ID就是用户名，则直接使用
-
+        User user= userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + authentication.getName()));
+        String userId = user.getUserId(); // 获取用户ID
         OrderResponse createdOrder = orderService.createOrder(request, userId);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }
@@ -118,9 +123,9 @@ public class OrderController
     {
         // 从 Spring Security 认证上下文中获取当前用户ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName(); // 通常情况下，getName() 返回的是用户名，如果您的User实体ID就是用户名，则直接使用
-
-        orderService.cancelOrder(id, userId);
+        User user= userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + authentication.getName()));
+        orderService.cancelOrder(id, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,6 +62,10 @@ public class PackageServiceImpl implements PackageService {
             for (String dishId : packageDto.getDishIds()) {
                 Dish dish = dishRepository.findById(dishId)
                         .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishId));
+                if(!Objects.equals(dish.getCanteen().getCanteenId(), canteen.getCanteenId())) {
+                    //前端不能传入不属于该食堂的菜品ID
+                    throw new ResourceNotFoundException("Dish with ID: " + dishId + " does not belong to the specified canteen.");
+                }
                 dishes.add(dish);
                 calculatedPrice = calculatedPrice.add(dish.getPrice());
             }
@@ -70,8 +75,7 @@ public class PackageServiceImpl implements PackageService {
         newPackage.setCanteen(canteen); // 设置所属食堂
         newPackage.setName(packageDto.getName());
         newPackage.setDescription(packageDto.getDescription());
-        // 如果DTO提供了价格，使用DTO的价格；否则使用计算的价格
-        newPackage.setPrice(packageDto.getPrice() != null ? packageDto.getPrice() : calculatedPrice);
+        newPackage.setPrice(packageDto.getPrice());
         newPackage.setDishes(dishes);
 
         Package savedPackage = packageRepository.save(newPackage);
@@ -143,7 +147,7 @@ public class PackageServiceImpl implements PackageService {
         if (updatedPackageDto.getCanteenId() != null && !updatedPackageDto.getCanteenId().equals(existingPackage.getCanteen().getCanteenId())) {
             newCanteen = canteenRepository.findById(updatedPackageDto.getCanteenId())
                     .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + updatedPackageDto.getCanteenId()));
-            existingPackage.setCanteen(newCanteen); // 更新所属食堂
+            existingPackage.setCanteen(newCanteen); // 更新所属食堂 不过真的要允许更新食堂吗？
         }
         else
         {
@@ -178,15 +182,14 @@ public class PackageServiceImpl implements PackageService {
                 for (String dishId : updatedPackageDto.getDishIds()) {
                     Dish dish = dishRepository.findById(dishId)
                             .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishId));
+                    if (!Objects.equals(dish.getCanteen().getCanteenId(), newCanteen.getCanteenId())) {
+                        // 前端不能传入不属于该食堂的菜品ID
+                        throw new ResourceNotFoundException("Dish with ID: " + dishId + " does not belong to the specified canteen.");
+                    }
                     newDishes.add(dish);
-                    recalculatedPrice = recalculatedPrice.add(dish.getPrice());
                 }
             }
             existingPackage.setDishes(newDishes);
-            // 如果DTO没有提供新的价格，则使用重新计算的价格
-            if (updatedPackageDto.getPrice() == null) {
-                existingPackage.setPrice(recalculatedPrice);
-            }
         }
 
         Package savedPackage = packageRepository.save(existingPackage);

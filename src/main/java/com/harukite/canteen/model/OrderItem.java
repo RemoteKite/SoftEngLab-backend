@@ -1,9 +1,8 @@
 package com.harukite.canteen.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -32,6 +31,8 @@ public class OrderItem
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Order order;
 
     /**

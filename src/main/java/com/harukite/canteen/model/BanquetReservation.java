@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -118,7 +120,7 @@ public class BanquetReservation
     /**
      * 预订状态，使用枚举类型映射数据库的 ENUM。
      */
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private BanquetStatus status = BanquetStatus.PENDING;
 

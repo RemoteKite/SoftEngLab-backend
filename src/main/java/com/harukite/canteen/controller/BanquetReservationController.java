@@ -2,8 +2,11 @@ package com.harukite.canteen.controller;
 
 import com.harukite.canteen.dto.BanquetReservationRequest;
 import com.harukite.canteen.dto.BanquetReservationResponse;
+import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.BanquetStatus;
+import com.harukite.canteen.model.User;
 import com.harukite.canteen.service.BanquetReservationService;
+import com.harukite.canteen.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +31,7 @@ public class BanquetReservationController
 {
 
     private final BanquetReservationService banquetReservationService;
+    private final UserRepository userRepository;
 
     /**
      * 创建新的宴会预订。
@@ -44,8 +48,11 @@ public class BanquetReservationController
         // 从 Spring Security 认证上下文中获取当前用户名
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        String userId = user.getUserId(); // 获取用户ID
 
-        BanquetReservationResponse createdReservation = banquetReservationService.createBanquetReservation(request, userName);
+        BanquetReservationResponse createdReservation = banquetReservationService.createBanquetReservation(request, userId);
         return new ResponseEntity<>(createdReservation, HttpStatus.CREATED);
     }
 
@@ -58,7 +65,7 @@ public class BanquetReservationController
      * @return 宴会预订响应 DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated() and (hasRole('ADMIN') or hasRole('STAFF') or @banquetReservationService.getBanquetReservationById(#id).userId == authentication.name)")
+    @PreAuthorize("isAuthenticated() and (hasRole('ADMIN') or hasRole('STAFF') or @banquetReservationService.getBanquetReservationById(#id).userId == (userRepository.findByUsername(authentication.name)).getUserId())")
     // 只有管理员/工作人员或预订所有者才能查看
     public ResponseEntity<BanquetReservationResponse> getBanquetReservationById(@PathVariable String id)
     {
@@ -124,7 +131,7 @@ public class BanquetReservationController
      * @return 更新后的宴会预订响应 DTO
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @banquetReservationService.getBanquetReservationById(#id).userId == userRepository.findByUsername(authentication.name)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @banquetReservationService.getBanquetReservationById(#id).userId == (userRepository.findByUsername(authentication.name)).getUserId()")
     // 只有管理员/工作人员或预订所有者才能更新
     public ResponseEntity<BanquetReservationResponse> updateBanquetReservation(
             @PathVariable String id,
@@ -168,8 +175,11 @@ public class BanquetReservationController
         // 从 Spring Security 认证上下文中获取当前用户名
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        String userId = user.getUserId(); // 获取用户ID
 
-        banquetReservationService.cancelBanquetReservation(id, userName);
+        banquetReservationService.cancelBanquetReservation(id, userId);
         return ResponseEntity.noContent().build();
     }
 

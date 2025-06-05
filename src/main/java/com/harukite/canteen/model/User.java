@@ -59,7 +59,6 @@ public class User
 
     /**
      * 用户角色，使用枚举类型映射数据库的 ENUM。
-     * EnumType.STRING 表示将枚举名称作为字符串存储到数据库。
      */
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "role", nullable = false)

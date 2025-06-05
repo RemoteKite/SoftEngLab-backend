@@ -9,10 +9,10 @@ import lombok.Getter;
 @Getter
 public enum OrderStatus
 {
-    PENDING("pending"),
-    CONFIRMED("confirmed"),
-    COMPLETED("completed"),
-    CANCELLED("cancelled");
+    PENDING("PENDING"),
+    CONFIRMED("CONFIRMED"),
+    COMPLETED("COMPLETED"),
+    CANCELLED("CANCELLED");
 
     private final String value;
 

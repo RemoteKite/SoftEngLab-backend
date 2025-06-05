@@ -8,6 +8,7 @@ import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.Dish;
 import com.harukite.canteen.model.RatingReview;
 import com.harukite.canteen.model.User;
+import com.harukite.canteen.model.UserRole;
 import com.harukite.canteen.repository.DishRepository;
 import com.harukite.canteen.repository.RatingReviewRepository;
 import com.harukite.canteen.repository.UserRepository;
@@ -200,11 +201,9 @@ public class RatingReviewServiceImpl implements RatingReviewService
         RatingReview review = ratingReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rating review not found with ID: " + reviewId));
 
-        // 权限检查：只有评论的创建者或管理员才能删除
-        // 假设这里有获取用户角色并进行判断的逻辑，例如：
-        // User currentUser = userRepository.findById(userId).orElseThrow(...);
-        // if (!review.getUser().getUserId().equals(userId) && currentUser.getRole() != UserRole.ADMIN) {
-        if (!review.getUser().getUserId().equals(userId))
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+        if (!review.getUser().getUserId().equals(userId)&&!(user.getRole() == UserRole.ADMIN))
         { // 暂时简化为只有创建者可删
             throw new InvalidInputException("You are not authorized to delete this review.");
         }

@@ -19,7 +19,7 @@ public interface RoomService
      * @param imageFile 包厢图片文件（可选）
      * @return 创建成功的包厢 DTO
      */
-    RoomDto createRoom(RoomDto roomDto, MultipartFile imageFile); // 修改方法签名
+    RoomDto createRoom(RoomDto roomDto, MultipartFile imageFile);
 
     /**
      * 根据包厢ID获取包厢详情。

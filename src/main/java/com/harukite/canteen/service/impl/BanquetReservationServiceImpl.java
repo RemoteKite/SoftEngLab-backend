@@ -49,17 +49,17 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 创建新的宴会预订。
      *
      * @param request 包含预订信息的 DTO
-     * @param userName  预订用户名
+     * @param userId  预订用户
      * @return 创建成功的宴会预订响应 DTO
      * @throws ResourceNotFoundException 如果用户、食堂、包厢、菜品或套餐不存在
      * @throws InvalidInputException     如果包厢不可用或人数无效
      */
     @Override
     @Transactional
-    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userName)
+    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userId)
     {
-        User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         Canteen canteen = canteenRepository.findById(request.getCanteenId())
                 .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + request.getCanteenId()));
 
@@ -89,6 +89,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
                             .orElseThrow(() -> new ResourceNotFoundException("Custom dish not found with ID: " + dishId)))
                     .collect(Collectors.toSet());
         }
+
 
         Set<Package> selectedPackages = new HashSet<>();
         if (request.getSelectedPackageIds() != null && !request.getSelectedPackageIds().isEmpty())
@@ -321,22 +322,22 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 取消宴会预订。
      *
      * @param banquetId 宴会预订ID
-     * @param userName    操作用户名 (用于权限检查，确保只有预订所有者或管理员可以取消)
+     * @param userId    操作用户名 (用于权限检查，确保只有预订所有者或管理员可以取消)
      * @throws ResourceNotFoundException 如果宴会预订不存在
      * @throws InvalidInputException     如果预订状态不允许取消或用户没有权限
      */
     @Override
     @Transactional
-    public void cancelBanquetReservation(String banquetId, String userName)
+    public void cancelBanquetReservation(String banquetId, String userId)
     {
         BanquetReservation reservation = banquetReservationRepository.findById(banquetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
         // 从数据库中获取当前用户信息
-        User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
         // 权限检查：确保只有预订所有者或管理员才能取消
-        if (!reservation.getUser().getUsername().equals(userName) && !(user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF))
+        if (!reservation.getUser().getUserId().equals(userId) && !(user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF))
         {
             throw new InvalidInputException("You are not authorized to cancel this reservation.");
         }
@@ -369,10 +370,14 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + roomId));
 
         // 获取该包厢在指定日期的所有非取消/完成状态的预订
+        // 注意：这里获取的是事件开始日期为 'date' 的所有预订。
         List<BanquetReservation> existingReservations = banquetReservationRepository
                 .findByRoomAndEventDate(room, date);
 
-        LocalTime requestedEndTime = requestedTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS);
+        // 将请求的开始时间转换为 LocalDateTime，以便正确处理跨午夜的情况
+        LocalDateTime requestedStartDateTime = date.atTime(requestedTime);
+        // 计算请求的结束时间，这会自动处理日期的跨越
+        LocalDateTime requestedEndDateTime = requestedStartDateTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS);
 
         for (BanquetReservation existingReservation : existingReservations)
         {
@@ -383,16 +388,21 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
             }
 
             // 忽略已取消或已完成的预订
+            // 这里的逻辑与你的代码保持一致，如果取消或完成的预订仍然在查询结果中，则跳过
             if (existingReservation.getStatus() == BanquetStatus.CANCELLED || existingReservation.getStatus() == BanquetStatus.COMPLETED)
             {
                 continue;
             }
 
-            LocalTime existingStartTime = existingReservation.getEventTime();
-            LocalTime existingEndTime = existingStartTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS); // 假设现有预订也按默认时长
+            // 将现有预订的开始时间转换为 LocalDateTime
+            // 现有预订的 eventDate 已经是 `date`，所以直接结合
+            LocalDateTime existingStartDateTime = existingReservation.getEventDate().atTime(existingReservation.getEventTime());
+            // 计算现有预订的结束时间，这也会自动处理日期的跨越
+            LocalDateTime existingEndDateTime = existingStartDateTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS); // 假设现有预订也按默认时长
 
             // 检查时间段是否重叠：(start1 < end2 AND end1 > start2)
-            if (requestedTime.isBefore(existingEndTime) && requestedEndTime.isAfter(existingStartTime))
+            // 使用 LocalDateTime 进行比较，这能正确处理跨日期的情况
+            if (requestedStartDateTime.isBefore(existingEndDateTime) && requestedEndDateTime.isAfter(existingStartDateTime))
             {
                 return false; // 存在重叠，包厢不可用
             }

@@ -1,6 +1,7 @@
 package com.harukite.canteen.service.impl;
 
 import com.harukite.canteen.dto.RoomDto;
+import com.harukite.canteen.exception.DuplicateEntryException;
 import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.Canteen;
 import com.harukite.canteen.model.Room;
@@ -50,6 +51,12 @@ public class RoomServiceImpl implements RoomService
 
         Room room = new Room();
         room.setCanteen(canteen);
+        getRoomsByCanteenId(canteen.getCanteenId()).stream()
+                .filter(r -> r.getName().equals(roomDto.getName()))
+                .findFirst()
+                .ifPresent(r -> {
+                    throw new DuplicateEntryException("Room with name '" + roomDto.getName() + "' already exists in this canteen.");
+                });
         room.setName(roomDto.getName());
         room.setCapacity(roomDto.getCapacity());
         room.setDescription(roomDto.getDescription());
@@ -145,12 +152,29 @@ public class RoomServiceImpl implements RoomService
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + roomId));
 
         // 更新所属食堂（如果提供了新的 canteenId）
+        Canteen newCanteen;
         if (updatedRoomDto.getCanteenId() != null && !updatedRoomDto.getCanteenId().equals(existingRoom.getCanteen().getCanteenId()))
         {
-            Canteen newCanteen = canteenRepository.findById(updatedRoomDto.getCanteenId())
+            newCanteen = canteenRepository.findById(updatedRoomDto.getCanteenId())
                     .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + updatedRoomDto.getCanteenId()));
             existingRoom.setCanteen(newCanteen);
         }
+        else
+        {
+            newCanteen = existingRoom.getCanteen(); // 保持原有食堂
+        }
+
+        if(updatedRoomDto.getName() != null && !updatedRoomDto.getName().equals(existingRoom.getName()))
+        {
+            // 检查更新后的名称是否在新的所属食堂内重复
+            getRoomsByCanteenId(newCanteen.getCanteenId()).stream()
+                    .filter(r -> r.getName().equals(updatedRoomDto.getName()) && !r.getRoomId().equals(roomId))
+                    .findFirst()
+                    .ifPresent(r -> {
+                        throw new DuplicateEntryException("Room with name '" + updatedRoomDto.getName() + "' already exists in this canteen.");
+                    });
+        }
+
 
         // 更新基本信息
         if (updatedRoomDto.getName() != null)

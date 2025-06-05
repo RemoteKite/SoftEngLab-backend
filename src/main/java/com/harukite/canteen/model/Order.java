@@ -1,10 +1,11 @@
 package com.harukite.canteen.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -68,8 +69,8 @@ public class Order
     /**
      * 订单状态，使用枚举类型映射数据库的 ENUM。
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "order_status")
     private OrderStatus status = OrderStatus.PENDING;
 
     /**
@@ -86,6 +87,8 @@ public class Order
      * orphanRemoval = true 表示如果从集合中移除 OrderItem，它也会从数据库中删除。
      */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<OrderItem> orderItems = new HashSet<>();
 
     /**

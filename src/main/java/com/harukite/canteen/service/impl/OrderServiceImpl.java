@@ -36,7 +36,7 @@ public class OrderServiceImpl implements OrderService
      * 创建新订单。
      *
      * @param request 包含订单信息的 DTO
-     * @param userId  下单用户ID
+     * @param userId 下单用户
      * @return 创建成功的订单响应 DTO
      * @throws ResourceNotFoundException 如果用户、食堂或菜品不存在
      * @throws InvalidInputException     如果订单项为空或菜品数量无效
@@ -90,8 +90,7 @@ public class OrderServiceImpl implements OrderService
         order.setOrderItems(orderItems); // 设置订单项集合
 
         Order savedOrder = orderRepository.save(order);
-        // 保存订单项，由于设置了 cascading，订单项应该随订单一起保存，但为了明确性，也可以单独保存
-        orderItemRepository.saveAll(orderItems); // 显式保存关联项
+        orderRepository.flush(); // 确保订单和订单项都已保存到数据库
 
         return convertToDto(savedOrder);
     }
