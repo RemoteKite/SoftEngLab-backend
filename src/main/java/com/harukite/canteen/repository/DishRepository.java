@@ -47,7 +47,7 @@ public interface DishRepository extends JpaRepository<Dish, String>, JpaSpecific
      *
      * @return 菜品列表
      */
-    @Query("SELECT d FROM Dish d JOIN FETCH d.dietaryTags dt JOIN FETCH d.allergens a")
+    @Query("SELECT d FROM Dish d LEFT JOIN FETCH d.dietaryTags dt LEFT JOIN FETCH d.allergens a")
     List<Dish> findAllWithDetails();
 }
 
