@@ -137,15 +137,6 @@ public class DietaryTagServiceImpl implements DietaryTagService
             throw new IllegalStateException("Dietary tag is currently associated with dishes and cannot be deleted.");
         }
 
-        // 检查此饮食习惯标签是否被任何 User 引用
-        // 由于 User 是 User_Dietary_Preferences 的拥有方，我们需要通过 UserRepository 查询
-        List<com.harukite.canteen.model.User> usersWithTag = userRepository.findByDietaryTagsContaining(dietaryTag);
-        if (!usersWithTag.isEmpty())
-        {
-            throw new IllegalStateException("Dietary tag is currently associated with users and cannot be deleted.");
-        }
-
-        dietaryTagRepository.delete(dietaryTag);
     }
 
     /**

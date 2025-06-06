@@ -136,13 +136,6 @@ public class AllergenServiceImpl implements AllergenService
             throw new IllegalStateException("Allergen is currently associated with dishes and cannot be deleted.");
         }
 
-        // 检查此过敏原是否被任何 User 引用
-        // 由于 User 是 User_Allergens 的拥有方，我们需要通过 UserRepository 查询
-        List<com.harukite.canteen.model.User> usersWithAllergen = userRepository.findByAllergensContaining(allergen);
-        if (!usersWithAllergen.isEmpty())
-        {
-            throw new IllegalStateException("Allergen is currently associated with users and cannot be deleted.");
-        }
 
         allergenRepository.delete(allergen);
     }

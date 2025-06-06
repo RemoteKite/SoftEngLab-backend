@@ -6,8 +6,6 @@ import com.harukite.canteen.dto.UserRegistrationRequest;
 import com.harukite.canteen.dto.UserResponseDto;
 import com.harukite.canteen.exception.DuplicateEntryException;
 import com.harukite.canteen.exception.ResourceNotFoundException;
-import com.harukite.canteen.model.Allergen;
-import com.harukite.canteen.model.DietaryTag;
 import com.harukite.canteen.model.User;
 import com.harukite.canteen.model.UserRole;
 import com.harukite.canteen.repository.AllergenRepository;
@@ -27,9 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -83,35 +79,9 @@ public class UserServiceImpl implements UserService
         user.setPhoneNumber(request.getPhoneNumber());
         user.setRole(request.getRole());
 
-        // 处理用户饮食偏好
-        if (request.getSelectedDietaryTagNames() != null && !request.getSelectedDietaryTagNames().isEmpty())
-        {
-            Set<DietaryTag> tags = request.getSelectedDietaryTagNames().stream()
-                    .map(tagName -> dietaryTagRepository.findByTagName(tagName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagName)))
-                    .collect(Collectors.toSet());
-            user.setDietaryTags(tags);
-        }
-        else
-        {
-            user.setDietaryTags(new HashSet<>()); // 如果没有选择，则设置为空集合
-        }
-
-        // 处理用户过敏原
-        if (request.getSelectedAllergenNames() != null && !request.getSelectedAllergenNames().isEmpty())
-        {
-            Set<Allergen> allergens = request.getSelectedAllergenNames().stream()
-                    .map(allergenName -> allergenRepository.findByAllergenName(allergenName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenName)))
-                    .collect(Collectors.toSet());
-            user.setAllergens(allergens);
-        }
-        else
-        {
-            user.setAllergens(new HashSet<>()); // 如果没有选择，则设置为空集合
-        }
 
         User savedUser = userRepository.save(user);
+        userRepository.flush();
         return convertToDto(savedUser);
     }
 
@@ -219,33 +189,6 @@ public class UserServiceImpl implements UserService
         existingUser.setPhoneNumber(updatedUserDto.getPhoneNumber());
         existingUser.setRole(updatedUserDto.getRole());
 
-        // 更新饮食偏好
-        if (updatedUserDto.getDietaryTagNames() != null)
-        {
-            Set<DietaryTag> newTags = updatedUserDto.getDietaryTagNames().stream()
-                    .map(tagName -> dietaryTagRepository.findByTagName(tagName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagName)))
-                    .collect(Collectors.toSet());
-            existingUser.setDietaryTags(newTags);
-        }
-        else
-        {
-            existingUser.setDietaryTags(new HashSet<>());
-        }
-
-        // 更新用户过敏原
-        if (updatedUserDto.getAllergenNames() != null)
-        {
-            Set<Allergen> newAllergens = updatedUserDto.getAllergenNames().stream()
-                    .map(allergenName -> allergenRepository.findByAllergenName(allergenName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenName)))
-                    .collect(Collectors.toSet());
-            existingUser.setAllergens(newAllergens);
-        }
-        else
-        {
-            existingUser.setAllergens(new HashSet<>());
-        }
 
         User savedUser = userRepository.save(existingUser);
         return convertToDto(savedUser);
@@ -317,23 +260,13 @@ public class UserServiceImpl implements UserService
      */
     private UserResponseDto convertToDto(User user)
     {
-        Set<String> dietaryTagNames = user.getDietaryTags().stream()
-                .map(DietaryTag::getTagName)
-                .collect(Collectors.toSet());
-
-        Set<String> allergenNames = user.getAllergens().stream()
-                .map(Allergen::getAllergenName)
-                .collect(Collectors.toSet());
-
         return new UserResponseDto(
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhoneNumber(),
                 user.getRole(),
-                user.getCreatedAt(),
-                dietaryTagNames,
-                allergenNames
+                user.getCreatedAt()
         );
     }
 }

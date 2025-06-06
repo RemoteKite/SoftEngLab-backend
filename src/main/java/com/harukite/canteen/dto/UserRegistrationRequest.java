@@ -35,9 +35,5 @@ public class UserRegistrationRequest
 
     @NotNull(message = "Role cannot be null")
     private UserRole role; // Using the UserRole enum
-
-    private List<String> selectedAllergenNames; // 用户选择的过敏原名称列表
-
-    private List<String> selectedDietaryTagNames; // 新增：用户选择的饮食习惯名称列表
 }
 

@@ -42,21 +42,5 @@ public interface UserRepository extends JpaRepository<User, String>
      * @return 包含用户的 Optional 对象，如果未找到则为空
      */
     Optional<User> findByPhoneNumber(String phoneNumber);
-
-    /**
-     * 查找包含指定饮食习惯标签的用户列表。
-     *
-     * @param dietaryTag 饮食习惯标签实体
-     * @return 包含该标签的用户列表
-     */
-    List<User> findByDietaryTagsContaining(DietaryTag dietaryTag);
-    
-    /**
-     * 查找包含指定过敏原的用户列表。
-     *
-     * @param allergen 过敏原实体
-     * @return 包含该过敏原的用户列表
-     */
-    List<User> findByAllergensContaining(Allergen allergen);
 }
 

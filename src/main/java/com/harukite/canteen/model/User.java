@@ -72,34 +72,6 @@ public class User
     private LocalDateTime createdAt;
 
     /**
-     * 用户与饮食偏好 (DietaryTag) 的多对多关系。
-     * 使用 @ManyToMany 和 @JoinTable 映射中间表 'user_dietary_preferences'。
-     * 'joinColumns' 指向本实体 (User) 在中间表中的外键。
-     * 'inverseJoinColumns' 指向关联实体 (DietaryTag) 在中间表中的外键。
-     */
-    @ManyToMany(fetch = FetchType.LAZY) // 懒加载，避免不必要的N+1查询
-    @JoinTable(
-            name = "user_dietary_preferences", // 中间表的名称
-            joinColumns = @JoinColumn(name = "user_id"), // User 在中间表中的外键
-            inverseJoinColumns = @JoinColumn(name = "tag_id") // DietaryTag 在中间表中的外键
-    )
-    private Set<DietaryTag> dietaryTags = new HashSet<>();
-
-    /**
-     * 用户与过敏原 (Allergen) 的多对多关系。
-     * 使用 @ManyToMany 和 @JoinTable 映射中间表 'user_allergens'。
-     * 'joinColumns' 指向本实体 (User) 在中间表中的外键。
-     * 'inverseJoinColumns' 指向关联实体 (Allergen) 在中间表中的外键。
-     */
-    @ManyToMany(fetch = FetchType.LAZY) // 懒加载
-    @JoinTable(
-            name = "user_allergens", // 中间表的名称
-            joinColumns = @JoinColumn(name = "user_id"), // User 在中间表中的外键
-            inverseJoinColumns = @JoinColumn(name = "allergen_id") // Allergen 在中间表中的外键
-    )
-    private Set<Allergen> allergens = new HashSet<>();
-
-    /**
      * 在实体持久化前，自动为 userId 生成一个 UUID。
      */
     @PrePersist

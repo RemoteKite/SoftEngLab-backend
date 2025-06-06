@@ -23,6 +23,4 @@ public class UserResponseDto
     private String phoneNumber;
     private UserRole role;
     private LocalDateTime createdAt;
-    private Set<String> dietaryTagNames; // 用户饮食偏好名称列表
-    private Set<String> allergenNames; // 新增：用户过敏原名称列表
 }

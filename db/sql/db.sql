@@ -131,37 +131,6 @@ COMMENT ON TABLE Dish_Dietary_Tags IS '关联菜品和其对应的饮食标签';
 COMMENT ON COLUMN Dish_Dietary_Tags.dish_id IS '菜品ID';
 COMMENT ON COLUMN Dish_Dietary_Tags.tag_id IS '饮食标签ID';
 
-
--- 8. 用户饮食偏好关联表 (User_Dietary_Preferences)
--- 关联用户和他们选择的饮食偏好标签
-CREATE TABLE User_Dietary_Preferences
-(
-    user_id VARCHAR(255) NOT NULL,
-    tag_id  VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_id, tag_id),
-    FOREIGN KEY (user_id) REFERENCES Users (user_id),
-    FOREIGN KEY (tag_id) REFERENCES Dietary_Tags (tag_id)
-);
-COMMENT ON TABLE User_Dietary_Preferences IS '关联用户和他们选择的饮食偏好标签';
-COMMENT ON COLUMN User_Dietary_Preferences.user_id IS '用户ID';
-COMMENT ON COLUMN User_Dietary_Preferences.tag_id IS '饮食标签ID';
-
-
--- 9. 用户-过敏原关联表 (User_Allergens) -- 新增
--- 关联用户和他们选择的过敏原
-CREATE TABLE User_Allergens
-(
-    user_id     VARCHAR(255) NOT NULL,
-    allergen_id VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_id, allergen_id),
-    FOREIGN KEY (user_id) REFERENCES Users (user_id),
-    FOREIGN KEY (allergen_id) REFERENCES Allergens (allergen_id)
-);
-COMMENT ON TABLE User_Allergens IS '关联用户和他们选择的过敏原';
-COMMENT ON COLUMN User_Allergens.user_id IS '用户ID';
-COMMENT ON COLUMN User_Allergens.allergen_id IS '过敏原ID';
-
-
 -- 10. 每日菜谱表 (Daily_Menus)
 -- 存储每日各时间段的食谱信息
 CREATE TABLE Daily_Menus
