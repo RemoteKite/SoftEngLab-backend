@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,13 +23,13 @@ public class DishDto
     private String description;
     private BigDecimal price;
     private String imageUrl;
-    private Set<String> dietaryTagIds; // List of dietary tag IDs
-    private Set<String> allergenIds; // List of allergen IDs
+    private List<String> dietaryTagIds; // List of dietary tag IDs
+    private List<String> allergenIds; // List of allergen IDs
     //TODO Below fields are used in response,consider splitting into separate DTOs if needed
     private String dishId;
     private Boolean isAvailable; //暂未使用，考虑弃用
     private LocalDateTime createdAt;
-    private Set<String> dietaryTagNames; // List of dietary tag names
-    private Set<String> allergenNames; // List of allergen names
+    private List<String> dietaryTagNames; // List of dietary tag names
+    private List<String> allergenNames; // List of allergen names
     private Double averageRating;
 }

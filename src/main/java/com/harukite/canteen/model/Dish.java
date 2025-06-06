@@ -1,9 +1,7 @@
 package com.harukite.canteen.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -85,6 +83,8 @@ public class Dish
             joinColumns = @JoinColumn(name = "dish_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<DietaryTag> dietaryTags = new HashSet<>();
 
     /**
@@ -97,6 +97,8 @@ public class Dish
             joinColumns = @JoinColumn(name = "dish_id"),
             inverseJoinColumns = @JoinColumn(name = "allergen_id")
     )
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<Allergen> allergens = new HashSet<>();
 
     /**

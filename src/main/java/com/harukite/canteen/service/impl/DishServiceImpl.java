@@ -143,7 +143,7 @@ public class DishServiceImpl implements DishService
     @Transactional(readOnly = true)
     public List<DishDto> getAllDishes()
     {
-        return dishRepository.findAll().stream()
+        return dishRepository.findAllWithDetails().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -360,24 +360,27 @@ public class DishServiceImpl implements DishService
      */
     private DishDto convertToDto(Dish dish)
     {
+        Set<DietaryTag> dietaryTags = dish.getDietaryTags();
+        Set<Allergen> allergens = dish.getAllergens();
+
         // 获取饮食标签Id
-        Set<String> dietaryTagIds = dish.getDietaryTags().stream()
+        List<String> dietaryTagIds = dietaryTags.stream()
                 .map(DietaryTag::getTagId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         // 获取过敏原Id
-        Set<String> allergenIds = dish.getAllergens().stream()
+        List<String> allergenIds = allergens.stream()
                 .map(Allergen::getAllergenId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         // 获取饮食标签名称
-        Set<String> dietaryTagNames = dish.getDietaryTags().stream()
+        List<String> dietaryTagNames = dietaryTags.stream()
                 .map(DietaryTag::getTagName)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         // 获取过敏原名称
-        Set<String> allergenNames = dish.getAllergens().stream()
+        List<String> allergenNames = allergens.stream()
                 .map(Allergen::getAllergenName)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         // 计算平均评分
         List<RatingReview> reviews = ratingReviewRepository.findByDish(dish);

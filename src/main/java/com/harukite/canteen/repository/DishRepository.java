@@ -4,6 +4,7 @@ import com.harukite.canteen.model.Canteen;
 import com.harukite.canteen.model.Dish;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,5 +41,13 @@ public interface DishRepository extends JpaRepository<Dish, String>, JpaSpecific
      * @return 菜品列表
      */
     List<Dish> findByIsAvailable(Boolean isAvailable);
+
+    /**
+     * 获取所有菜品。
+     *
+     * @return 菜品列表
+     */
+    @Query("SELECT d FROM Dish d JOIN FETCH d.dietaryTags dt JOIN FETCH d.allergens a")
+    List<Dish> findAllWithDetails();
 }
 

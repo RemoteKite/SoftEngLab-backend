@@ -1,9 +1,7 @@
 package com.harukite.canteen.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -39,6 +37,8 @@ public class DietaryTag
      * mappedBy 指向 Dish 实体中拥有关系管理权的字段名称。
      */
     @ManyToMany(mappedBy = "dietaryTags", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<Dish> dishes = new HashSet<>();
 
     /**
