@@ -22,6 +22,8 @@ public class DishDto
     private String description;
     private BigDecimal price;
     private String imageUrl;
+    private Set<String> dietaryTagIds; // List of dietary tag IDs
+    private Set<String> allergenIds; // List of allergen IDs
     //TODO Below fields are used in response,consider splitting into separate DTOs if needed
     private String dishId;
     private Boolean isAvailable; //暂未使用，考虑弃用

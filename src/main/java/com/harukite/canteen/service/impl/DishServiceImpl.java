@@ -86,11 +86,11 @@ public class DishServiceImpl implements DishService
 
 
         // 处理饮食标签
-        if (dishDto.getDietaryTagNames() != null && !dishDto.getDietaryTagNames().isEmpty())
+        if (dishDto.getDietaryTagIds() != null && !dishDto.getDietaryTagIds().isEmpty())
         {
-            Set<DietaryTag> dietaryTags = dishDto.getDietaryTagNames().stream()
-                    .map(tagName -> dietaryTagRepository.findByTagName(tagName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagName)))
+            Set<DietaryTag> dietaryTags = dishDto.getDietaryTagIds().stream()
+                    .map(tagId -> dietaryTagRepository.findById(tagId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagId)))
                     .collect(Collectors.toSet());
             dish.setDietaryTags(dietaryTags);
         }
@@ -100,11 +100,11 @@ public class DishServiceImpl implements DishService
         }
 
         // 处理过敏原
-        if (dishDto.getAllergenNames() != null && !dishDto.getAllergenNames().isEmpty())
+        if (dishDto.getAllergenIds() != null && !dishDto.getAllergenIds().isEmpty())
         {
-            Set<Allergen> allergens = dishDto.getAllergenNames().stream()
-                    .map(allergenName -> allergenRepository.findByAllergenName(allergenName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenName)))
+            Set<Allergen> allergens = dishDto.getAllergenIds().stream()
+                    .map(allergenId -> allergenRepository.findById(allergenId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenId)))
                     .collect(Collectors.toSet());
             dish.setAllergens(allergens);
         }
@@ -222,11 +222,11 @@ public class DishServiceImpl implements DishService
         // 如果 imageFile 为 null 且 updatedDishDto.getImageUrl() 也为 null，则保持不变
 
         // 更新饮食标签
-        if (updatedDishDto.getDietaryTagNames() != null)
+        if (updatedDishDto.getDietaryTagIds() != null)
         { // 如果提供了，则更新；如果为null，则清空
-            Set<DietaryTag> newTags = updatedDishDto.getDietaryTagNames().stream()
-                    .map(tagName -> dietaryTagRepository.findByTagName(tagName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagName)))
+            Set<DietaryTag> newTags = updatedDishDto.getDietaryTagIds().stream()
+                    .map(tagId -> dietaryTagRepository.findById(tagId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Dietary tag not found: " + tagId)))
                     .collect(Collectors.toSet());
             existingDish.setDietaryTags(newTags);
         }
@@ -236,11 +236,11 @@ public class DishServiceImpl implements DishService
         }
 
         // 更新过敏原
-        if (updatedDishDto.getAllergenNames() != null)
+        if (updatedDishDto.getAllergenIds() != null)
         { // 如果提供了，则更新；如果为null，则清空
-            Set<Allergen> newAllergens = updatedDishDto.getAllergenNames().stream()
-                    .map(allergenName -> allergenRepository.findByAllergenName(allergenName)
-                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenName)))
+            Set<Allergen> newAllergens = updatedDishDto.getAllergenIds().stream()
+                    .map(allergenId -> allergenRepository.findById(allergenId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Allergen not found: " + allergenId)))
                     .collect(Collectors.toSet());
             existingDish.setAllergens(newAllergens);
         }
@@ -360,6 +360,15 @@ public class DishServiceImpl implements DishService
      */
     private DishDto convertToDto(Dish dish)
     {
+        // 获取饮食标签Id
+        Set<String> dietaryTagIds = dish.getDietaryTags().stream()
+                .map(DietaryTag::getTagId)
+                .collect(Collectors.toSet());
+        // 获取过敏原Id
+        Set<String> allergenIds = dish.getAllergens().stream()
+                .map(Allergen::getAllergenId)
+                .collect(Collectors.toSet());
+
         // 获取饮食标签名称
         Set<String> dietaryTagNames = dish.getDietaryTags().stream()
                 .map(DietaryTag::getTagName)
@@ -387,6 +396,8 @@ public class DishServiceImpl implements DishService
                 dish.getDescription(),
                 dish.getPrice(),
                 dish.getImageUrl(), // 使用数据库存储的 URL
+                dietaryTagIds,
+                allergenIds,
                 dish.getDishId(),
                 dish.getIsAvailable(),
                 dish.getCreatedAt(),

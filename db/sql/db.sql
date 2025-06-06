@@ -402,8 +402,3 @@ CREATE INDEX idx_dish_allergens_dish_id ON Dish_Allergens (dish_id);
 CREATE INDEX idx_dish_allergens_allergen_id ON Dish_Allergens (allergen_id);
 CREATE INDEX idx_dish_dietary_tags_dish_id ON Dish_Dietary_Tags (dish_id);
 CREATE INDEX idx_dish_dietary_tags_tag_id ON Dish_Dietary_Tags (tag_id);
-CREATE INDEX idx_user_dietary_preferences_user_id ON User_Dietary_Preferences (user_id);
-CREATE INDEX idx_user_dietary_preferences_tag_id ON User_Dietary_Preferences (tag_id);
--- 新增用户过敏原关联表的索引
-CREATE INDEX idx_user_allergens_user_id ON User_Allergens (user_id);
-CREATE INDEX idx_user_allergens_allergen_id ON User_Allergens (allergen_id);
