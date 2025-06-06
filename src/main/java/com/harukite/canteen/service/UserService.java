@@ -70,4 +70,12 @@ public interface UserService
      * @return 更新后的用户响应 DTO
      */
     UserResponseDto updateUserRole(String userId, UserRole newRole);
+
+    /**
+     * 重置用户密码。
+     *
+     * @param userId 用户ID
+     * @return 用户响应 DTO
+     */
+    UserResponseDto resetUserPassword(String userId, String newPassword);
 }

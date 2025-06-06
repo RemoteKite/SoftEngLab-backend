@@ -287,6 +287,29 @@ public class UserServiceImpl implements UserService
     }
 
     /**
+     * 重置用户密码。
+     *
+     * @param userId 用户ID
+     * @param newPassword 新密码
+     * @return 更新后的用户响应 DTO
+     * @throws ResourceNotFoundException 如果用户不存在
+     */
+    @Override
+    @Transactional
+    public UserResponseDto resetUserPassword(String userId, String newPassword)
+    {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        // 使用 PasswordEncoder 对新密码进行加密
+        existingUser.setPasswordHash(passwordEncoder.encode(newPassword));
+
+        User savedUser = userRepository.save(existingUser);
+        return convertToDto(savedUser);
+    }
+
+
+    /**
      * 辅助方法：将 User 实体转换为 UserResponseDto。
      *
      * @param user User 实体

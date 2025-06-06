@@ -60,6 +60,26 @@ public class AdminController
     }
 
     /**
+     * 重置用户密码。
+     * URL: PUT /api/admin/users/{userId}/password
+     * (需要管理员权限)
+     *
+     * @param userId 用户ID
+     * @return 用户响应 DTO
+     */
+    @PutMapping("/users/{userId}/password")
+    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 'ADMIN' 角色的用户才能访问
+    public ResponseEntity<UserResponseDto> resetUserPassword(@PathVariable String userId, @RequestParam (required = false) String newPassword)
+    {
+        // 如果 newPassword 为 null，则使用默认密码逻辑
+        if (newPassword == null || newPassword.isEmpty()) {
+            newPassword = "defaultPassword"; // 这里可以替换为实际的默认密码逻辑
+        }
+        UserResponseDto updatedUser = userService.resetUserPassword(userId, newPassword);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    /**
      * 删除用户。
      * URL: DELETE /api/admin/users/{userId}
      * (需要管理员权限)
