@@ -93,6 +93,26 @@ public class OrderController
     }
 
     /**
+     * 获取当前用户所有订单。
+     * URL: GET /api/orders/current-user
+     * (用户可以查询自己的订单，管理员可以查询任何用户的订单)
+     *
+     *
+     * @return 订单响应 DTO 列表
+     */
+    @GetMapping("/current-user")
+    public ResponseEntity<List<OrderResponse>> getOrdersByCurrentUser()
+    {
+        // 从 Spring Security 认证上下文中获取当前用户ID
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user= userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + authentication.getName()));
+        String userId = user.getUserId(); // 获取用户ID
+        List<OrderResponse> orders = orderService.getOrdersByUserId(userId);
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
      * 更新订单状态。
      * URL: PUT /api/orders/{id}/status
      * (通常需要管理员或食堂工作人员权限)

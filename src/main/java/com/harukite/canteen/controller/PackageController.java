@@ -27,6 +27,7 @@ public class PackageController {
      * URL: POST /api/packages
      * (需要管理员或工作人员权限)
      *
+     *
      * @param packageDto 包含套餐信息的 DTO
      * @return 创建成功的套餐 DTO
      */
