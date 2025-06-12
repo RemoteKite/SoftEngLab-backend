@@ -106,6 +106,29 @@ public class BanquetReservationController
     }
 
     /**
+     * 获取当前用户的所有宴会预订。
+     * URL: GET /api/banquet/current-user
+     * (用户可以查询自己的预订，管理员可以查询任何用户的预订)
+     *
+     * @return 宴会预订响应 DTO 列表
+     */
+    @GetMapping("/current-user")
+    @PreAuthorize("isAuthenticated()") // 任何已认证用户都可以查看自己的预订
+    public ResponseEntity<List<BanquetReservationResponse>> getBanquetReservationsByCurrentUser()
+    {
+        // 从 Spring Security 认证上下文中获取当前用户名
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        String userId = user.getUserId(); // 获取用户ID
+
+        List<BanquetReservationResponse> reservations = banquetReservationService.getBanquetReservationsByUserId(userId);
+        return ResponseEntity.ok(reservations);
+    }
+
+
+    /**
      * 根据食堂ID获取宴会预订列表。
      * URL: GET /api/banquet/canteen/{canteenId}
      * (任何已认证用户或匿名用户都可以查看，通常用于查询食堂的预订情况)

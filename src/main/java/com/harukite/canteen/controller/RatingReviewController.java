@@ -102,6 +102,25 @@ public class RatingReviewController {
     }
 
     /**
+     * 获取当前用户的所有评分与评论。
+     * URL: GET /api/reviews/current-user
+     *
+     * @return 评分与评论响应 DTO 列表
+     */
+    @GetMapping("/current-user")
+    @PreAuthorize("isAuthenticated()") // 任何已认证用户都可以查看自己的评分与评论
+    public ResponseEntity<List<RatingReviewDto>> getRatingReviewsByCurrentUser() {
+        // 从 Spring Security 认证上下文中获取当前用户名
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with Name: " + userName));
+        String userId = user.getUserId(); // 获取用户ID
+        List<RatingReviewDto> reviews = ratingReviewService.getRatingReviewsByUserId(userId);
+        return ResponseEntity.ok(reviews);
+    }
+
+    /**
      * 更新评分与评论。
      * URL: PUT /api/reviews/{id}
      *

@@ -204,7 +204,7 @@ public class RatingReviewServiceImpl implements RatingReviewService
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         if (!review.getUser().getUserId().equals(userId)&&!(user.getRole() == UserRole.ADMIN))
-        { // 暂时简化为只有创建者可删
+        {
             throw new InvalidInputException("You are not authorized to delete this review.");
         }
         ratingReviewRepository.deleteById(reviewId);
