@@ -1,25 +1,18 @@
 package com.harukite.canteen.service.impl;
 
 import com.harukite.canteen.dto.DishDto;
-import com.harukite.canteen.dto.DishFilterRequest;
 import com.harukite.canteen.exception.ResourceNotFoundException;
 import com.harukite.canteen.model.*;
 import com.harukite.canteen.repository.*;
 import com.harukite.canteen.service.CosService;
 import com.harukite.canteen.service.DishService;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -279,79 +272,6 @@ public class DishServiceImpl implements DishService
     }
 
     /**
-     * 根据筛选条件查找菜品。
-     *
-     * @param filterRequest 菜品筛选请求 DTO
-     * @return 符合条件的菜品 DTO 列表
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<DishDto> filterDishes(DishFilterRequest filterRequest)
-    {
-        Specification<Dish> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            // 按食堂ID筛选
-            if (StringUtils.hasText(filterRequest.getCanteenId()))
-            {
-                predicates.add(cb.equal(root.get("canteen").get("canteenId"), filterRequest.getCanteenId()));
-            }
-
-            // 按菜品名称模糊筛选
-            if (StringUtils.hasText(filterRequest.getDishName()))
-            {
-                predicates.add(cb.like(cb.lower(root.get("name")), "%" + filterRequest.getDishName().toLowerCase() + "%"));
-            }
-
-            // 按价格区间筛选
-            if (filterRequest.getMinPrice() != null)
-            {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), filterRequest.getMinPrice()));
-            }
-            if (filterRequest.getMaxPrice() != null)
-            {
-                predicates.add(cb.lessThanOrEqualTo(root.get("price"), filterRequest.getMaxPrice()));
-            }
-
-            // 按是否可用筛选
-            if (filterRequest.getIsAvailable() != null)
-            {
-                predicates.add(cb.equal(root.get("isAvailable"), filterRequest.getIsAvailable()));
-            }
-
-            // 按所需饮食标签筛选 (需要菜品包含所有指定的标签)
-            if (filterRequest.getRequiredDietaryTags() != null && !filterRequest.getRequiredDietaryTags().isEmpty())
-            {
-                // 为每个required tag创建一个子查询或join
-                for (String tagName : filterRequest.getRequiredDietaryTags())
-                {
-                    Join<Dish, DietaryTag> dishTags = root.join("dietaryTags");
-                    predicates.add(cb.equal(dishTags.get("tagName"), tagName));
-                }
-            }
-
-            // 按排除过敏原筛选 (菜品不能包含任何指定的过敏原)
-            if (filterRequest.getExcludedAllergens() != null && !filterRequest.getExcludedAllergens().isEmpty())
-            {
-                jakarta.persistence.criteria.Subquery<String> subquery = query.subquery(String.class);
-                Root<Dish> subRoot = subquery.from(Dish.class);
-                Join<Dish, Allergen> dishAllergensJoin = subRoot.join("allergens");
-                subquery.select(subRoot.get("dishId"))
-                        .where(dishAllergensJoin.get("allergenName").in(filterRequest.getExcludedAllergens()));
-
-                predicates.add(cb.not(root.get("dishId").in(subquery)));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        List<Dish> dishes = dishRepository.findAll(spec);
-        return dishes.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * 辅助方法：将 Dish 实体转换为 DishDto。
      * 同时计算菜品的平均评分。
      *
@@ -384,7 +304,7 @@ public class DishServiceImpl implements DishService
 
         // 计算平均评分
         List<RatingReview> reviews = ratingReviewRepository.findByDish(dish);
-        Double averageRating = 0.0;
+        double averageRating = 0.0;
         if (!reviews.isEmpty())
         {
             double sumRatings = reviews.stream()

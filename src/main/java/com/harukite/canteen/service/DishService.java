@@ -1,7 +1,6 @@
 package com.harukite.canteen.service;
 
 import com.harukite.canteen.dto.DishDto;
-import com.harukite.canteen.dto.DishFilterRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -53,12 +52,4 @@ public interface DishService
      * @param dishId 要删除的菜品ID
      */
     void deleteDish(String dishId);
-
-    /**
-     * 根据筛选条件查找菜品。
-     *
-     * @param filterRequest 菜品筛选请求 DTO
-     * @return 符合条件的菜品 DTO 列表
-     */
-    List<DishDto> filterDishes(DishFilterRequest filterRequest);
 }

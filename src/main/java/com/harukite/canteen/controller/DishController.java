@@ -1,7 +1,6 @@
 package com.harukite.canteen.controller;
 
 import com.harukite.canteen.dto.DishDto;
-import com.harukite.canteen.dto.DishFilterRequest;
 import com.harukite.canteen.service.DishService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -79,24 +78,6 @@ public class DishController
     }
 
     /**
-     * 根据食堂ID获取菜品列表。
-     * URL: GET /api/dishes/canteen/{canteenId}
-     * (任何已认证用户或匿名用户都可以查看)
-     *
-     * @param canteenId 食堂ID
-     * @return 菜品 DTO 列表
-     */
-    @GetMapping("/canteen/{canteenId}")
-    @PreAuthorize("permitAll()") // 允许所有用户访问
-    public ResponseEntity<List<DishDto>> getDishesByCanteenId(@PathVariable String canteenId)
-    {
-        DishFilterRequest filterRequest = new DishFilterRequest();
-        filterRequest.setCanteenId(canteenId);
-        List<DishDto> dishes = dishService.filterDishes(filterRequest);
-        return ResponseEntity.ok(dishes);
-    }
-
-    /**
      * 更新菜品信息。
      * URL: PUT /api/dishes/{id}
      * Content-Type: multipart/form-data
@@ -132,21 +113,5 @@ public class DishController
     {
         dishService.deleteDish(id);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 根据筛选条件查找菜品。
-     * URL: POST /api/dishes/filter
-     * (对于复杂的筛选条件，使用 POST 请求体更符合 RESTful 实践，任何已认证用户或匿名用户都可以查看)
-     *
-     * @param filterRequest 菜品筛选请求 DTO (通过 @RequestBody 接收)
-     * @return 符合条件的菜品 DTO 列表
-     */
-    @PostMapping("/filter")
-    @PreAuthorize("permitAll()") // 允许所有用户访问
-    public ResponseEntity<List<DishDto>> filterDishes(@RequestBody DishFilterRequest filterRequest)
-    {
-        List<DishDto> dishes = dishService.filterDishes(filterRequest);
-        return ResponseEntity.ok(dishes);
     }
 }
