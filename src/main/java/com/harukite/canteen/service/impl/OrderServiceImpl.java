@@ -21,13 +21,12 @@ import java.util.stream.Collectors;
  * 订单服务接口的实现类。
  * 包含订单的创建、查询、状态更新和取消等业务逻辑。
  */
-@Service
+@Service("orderService")
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService
 {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final CanteenRepository canteenRepository;
     private final DishRepository dishRepository;

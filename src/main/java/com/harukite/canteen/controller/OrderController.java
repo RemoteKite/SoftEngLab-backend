@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,7 @@ public class OrderController
      * @return 创建成功的订单响应 DTO
      */
     @PostMapping
+    @PreAuthorize("isAuthenticated()") // 仅允许已认证用户访问
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request)
     {
         // 从 Spring Security 认证上下文中获取当前用户ID
@@ -57,6 +59,7 @@ public class OrderController
      * @return 订单响应 DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable String id)
     {
         OrderResponse order = orderService.getOrderById(id);
@@ -66,11 +69,11 @@ public class OrderController
     /**
      * 获取所有订单列表。
      * URL: GET /api/orders
-     * (通常需要管理员权限)
      *
      * @return 订单响应 DTO 列表
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能查看所有订单
     public ResponseEntity<List<OrderResponse>> getAllOrders()
     {
         List<OrderResponse> orders = orderService.getAllOrders();
@@ -86,6 +89,7 @@ public class OrderController
      * @return 订单响应 DTO 列表
      */
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @orderService.getOrdersByUserId(#userId).get(0).getUserId() == (userRepository.findByUsername(authentication.name)).getUserId()") // 允许用户查询自己的订单或管理员查询任何用户的订单
     public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@PathVariable String userId)
     {
         List<OrderResponse> orders = orderService.getOrdersByUserId(userId);
@@ -95,12 +99,12 @@ public class OrderController
     /**
      * 获取当前用户所有订单。
      * URL: GET /api/orders/current-user
-     * (用户可以查询自己的订单，管理员可以查询任何用户的订单)
      *
      *
      * @return 订单响应 DTO 列表
      */
     @GetMapping("/current-user")
+    @PreAuthorize("isAuthenticated()") // 仅允许已认证用户访问
     public ResponseEntity<List<OrderResponse>> getOrdersByCurrentUser()
     {
         // 从 Spring Security 认证上下文中获取当前用户ID
@@ -122,6 +126,7 @@ public class OrderController
      * @return 更新后的订单响应 DTO
      */
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能更新订单状态
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable String id,
             @RequestParam OrderStatus newStatus)
@@ -139,6 +144,7 @@ public class OrderController
      * @return 无内容响应
      */
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @orderService.getOrderById(#id).getUserId() == (userRepository.findByUsername(authentication.name)).getUserId()") // 允许用户取消自己的订单或管理员取消任何订单
     public ResponseEntity<Void> cancelOrder(@PathVariable String id)
     {
         // 从 Spring Security 认证上下文中获取当前用户ID

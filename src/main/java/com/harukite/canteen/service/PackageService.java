@@ -34,14 +34,6 @@ public interface PackageService {
     List<PackageDto> getAllPackages();
 
     /**
-     * 根据食堂ID获取套餐列表。
-     *
-     * @param canteenId 食堂ID
-     * @return 套餐 DTO 列表
-     */
-    List<PackageDto> getPackagesByCanteenId(String canteenId); // 新增方法
-
-    /**
      * 更新套餐信息。
      *
      * @param packageId 要更新的套餐ID

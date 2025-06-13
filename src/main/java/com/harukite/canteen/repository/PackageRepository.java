@@ -5,7 +5,6 @@ import com.harukite.canteen.model.Package;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,11 +24,4 @@ public interface PackageRepository extends JpaRepository<Package, String> {
      */
     Optional<Package> findByNameAndCanteen(String name, Canteen canteen);
 
-    /**
-     * 根据所属食堂查找套餐列表。
-     *
-     * @param canteen 食堂实体
-     * @return 套餐列表
-     */
-    List<Package> findByCanteen(Canteen canteen);
 }

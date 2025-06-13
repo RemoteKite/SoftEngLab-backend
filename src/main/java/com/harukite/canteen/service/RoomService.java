@@ -52,7 +52,7 @@ public interface RoomService
      * @param imageFile      包厢图片文件（可选，如果提供则更新图片）
      * @return 更新后的包厢 DTO
      */
-    RoomDto updateRoom(String roomId, RoomDto updatedRoomDto, MultipartFile imageFile); // 修改方法签名
+    RoomDto updateRoom(String roomId, RoomDto updatedRoomDto, MultipartFile imageFile);
 
     /**
      * 删除包厢。

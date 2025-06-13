@@ -39,13 +39,4 @@ public interface DailyMenuRepository extends JpaRepository<DailyMenu, String>
      */
     Optional<DailyMenu> findByCanteenAndMenuDateAndStartTimeAndEndTime(Canteen canteen, LocalDate menuDate, LocalTime startTime, LocalTime endTime);
 
-    /**
-     * 查找在指定时间段内有效的菜谱。
-     *
-     * @param canteen     食堂实体
-     * @param menuDate    菜谱日期
-     * @param currentTime 当前时间
-     * @return 符合条件的菜谱列表
-     */
-    List<DailyMenu> findByCanteenAndMenuDateAndStartTimeBeforeAndEndTimeAfter(Canteen canteen, LocalDate menuDate, LocalTime currentTime, LocalTime currentTime2);
 }

@@ -21,22 +21,4 @@ public enum BanquetStatus
         this.value = value;
     }
 
-    /**
-     * 根据字符串值获取对应的 BanquetStatus 枚举。
-     *
-     * @param text 状态字符串值
-     * @return 对应的 BanquetStatus 枚举，如果未找到则抛出 IllegalArgumentException
-     */
-    public static BanquetStatus fromString(String text)
-    {
-        for (BanquetStatus b : BanquetStatus.values())
-        {
-            if (b.value.equalsIgnoreCase(text))
-            {
-                return b;
-            }
-        }
-        throw new IllegalArgumentException("No constant with text " + text + " found");
-    }
-
 }

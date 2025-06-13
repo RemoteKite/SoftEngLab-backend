@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class AllergenController
      * @return 创建成功的过敏原 DTO
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能创建过敏原
     public ResponseEntity<AllergenDto> createAllergen(@Valid @RequestBody AllergenDto allergenDto)
     {
         AllergenDto createdAllergen = allergenService.createAllergen(allergenDto);
@@ -72,6 +74,7 @@ public class AllergenController
      * @return 更新后的过敏原 DTO
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能更新过敏原
     public ResponseEntity<AllergenDto> updateAllergen(@PathVariable String id, @Valid @RequestBody AllergenDto updatedAllergenDto)
     {
         AllergenDto allergen = allergenService.updateAllergen(id, updatedAllergenDto);
@@ -86,6 +89,7 @@ public class AllergenController
      * @return 无内容响应
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能删除过敏原
     public ResponseEntity<Void> deleteAllergen(@PathVariable String id)
     {
         allergenService.deleteAllergen(id);

@@ -111,24 +111,6 @@ public class PackageServiceImpl implements PackageService {
     }
 
     /**
-     * 根据食堂ID获取套餐列表。
-     *
-     * @param canteenId 食堂ID
-     * @return 套餐 DTO 列表
-     * @throws ResourceNotFoundException 如果食堂不存在
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<PackageDto> getPackagesByCanteenId(String canteenId) {
-        Canteen canteen = canteenRepository.findById(canteenId)
-                .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + canteenId));
-        List<Package> packages = packageRepository.findByCanteen(canteen);
-        return packages.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * 更新套餐信息。
      *
      * @param packageId 要更新的套餐ID
@@ -177,7 +159,6 @@ public class PackageServiceImpl implements PackageService {
         // 更新包含的菜品
         if (updatedPackageDto.getDishIds() != null) {
             Set<Dish> newDishes = new HashSet<>();
-            BigDecimal recalculatedPrice = BigDecimal.ZERO;
             if (!updatedPackageDto.getDishIds().isEmpty()) {
                 for (String dishId : updatedPackageDto.getDishIds()) {
                     Dish dish = dishRepository.findById(dishId)

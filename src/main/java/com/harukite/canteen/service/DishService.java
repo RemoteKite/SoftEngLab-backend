@@ -20,7 +20,7 @@ public interface DishService
      * @param imageFile 菜品图片文件（可选）
      * @return 创建成功的菜品 DTO
      */
-    DishDto createDish(DishDto dishDto, MultipartFile imageFile); // 修改方法签名
+    DishDto createDish(DishDto dishDto, MultipartFile imageFile);
 
     /**
      * 根据菜品ID获取菜品详情。
@@ -45,7 +45,7 @@ public interface DishService
      * @param imageFile      菜品图片文件（可选，如果提供则更新图片）
      * @return 更新后的菜品 DTO
      */
-    DishDto updateDish(String dishId, DishDto updatedDishDto, MultipartFile imageFile); // 修改方法签名
+    DishDto updateDish(String dishId, DishDto updatedDishDto, MultipartFile imageFile);
 
     /**
      * 删除菜品。

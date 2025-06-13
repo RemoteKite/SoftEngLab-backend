@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class DietaryTagController
      * @return 创建成功的饮食习惯标签 DTO
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能创建饮食习惯标签
     public ResponseEntity<DietaryTagDto> createDietaryTag(@Valid @RequestBody DietaryTagDto dietaryTagDto)
     {
         DietaryTagDto createdDietaryTag = dietaryTagService.createDietaryTag(dietaryTagDto);
@@ -72,6 +74,7 @@ public class DietaryTagController
      * @return 更新后的饮食习惯标签 DTO
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能更新饮食习惯标签
     public ResponseEntity<DietaryTagDto> updateDietaryTag(@PathVariable String id, @Valid @RequestBody DietaryTagDto updatedDietaryTagDto)
     {
         DietaryTagDto dietaryTag = dietaryTagService.updateDietaryTag(id, updatedDietaryTagDto);
@@ -86,6 +89,7 @@ public class DietaryTagController
      * @return 无内容响应
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')") // 只有管理员或工作人员才能删除饮食习惯标签
     public ResponseEntity<Void> deleteDietaryTag(@PathVariable String id)
     {
         dietaryTagService.deleteDietaryTag(id);

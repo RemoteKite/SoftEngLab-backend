@@ -20,9 +20,9 @@ import java.util.List;
 public class PackageDto {
     private String packageId;
 
-    @NotBlank(message = "Canteen ID cannot be empty") // 新增：食堂ID
+    @NotBlank(message = "Canteen ID cannot be empty")
     private String canteenId;
-    private String canteenName; // 新增：食堂名称
+    private String canteenName;
 
     @NotBlank(message = "Package name cannot be empty")
     private String name;
