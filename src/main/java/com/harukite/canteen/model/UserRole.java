@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 public enum UserRole
 {
-    DINER("diner"),
-    ADMIN("admin"),
-    STAFF("staff");
+    DINER("DINER"),
+    ADMIN("ADMIN"),
+    STAFF("STAFF");
 
     private final String value;
 
@@ -21,7 +21,7 @@ public enum UserRole
     /**
      * 获取枚举的字符串值。
      *
-     * @return 角色的小写字符串表示
+     * @return 角色的字符串表示
      */
     @JsonValue
     public String getValue()

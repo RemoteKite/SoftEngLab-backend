@@ -2,15 +2,25 @@ package com.harukite.canteen.service.impl;
 
 import com.harukite.canteen.dto.BanquetReservationRequest;
 import com.harukite.canteen.dto.BanquetReservationResponse;
-import com.harukite.canteen.dto.DishDto;
+import com.harukite.canteen.dto.BanquetReservationDishItemDto; // 导入新增的 DTO
 import com.harukite.canteen.dto.PackageDto;
 import com.harukite.canteen.exception.InvalidInputException;
 import com.harukite.canteen.exception.ResourceNotFoundException;
-import com.harukite.canteen.model.*;
+import com.harukite.canteen.model.BanquetReservation;
+import com.harukite.canteen.model.BanquetReservationDishItem; // 导入新增的实体
+import com.harukite.canteen.model.BanquetStatus;
+import com.harukite.canteen.model.Canteen;
+import com.harukite.canteen.model.Dish;
 import com.harukite.canteen.model.Package;
-import com.harukite.canteen.repository.*;
+import com.harukite.canteen.model.Room;
+import com.harukite.canteen.model.User;
+import com.harukite.canteen.repository.BanquetReservationRepository;
+import com.harukite.canteen.repository.CanteenRepository;
+import com.harukite.canteen.repository.DishRepository;
+import com.harukite.canteen.repository.PackageRepository;
+import com.harukite.canteen.repository.RoomRepository;
+import com.harukite.canteen.repository.UserRepository;
 import com.harukite.canteen.service.BanquetReservationService;
-import com.harukite.canteen.service.DishService;
 import com.harukite.canteen.service.PackageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,66 +44,70 @@ import java.util.stream.Collectors;
 public class BanquetReservationServiceImpl implements BanquetReservationService
 {
 
-    // 假设宴会默认时长为 2 小时，可根据实际业务需求调整或设为可配置项
-    private static final int DEFAULT_BANQUET_DURATION_HOURS = 2;
     private final BanquetReservationRepository banquetReservationRepository;
     private final UserRepository userRepository;
     private final CanteenRepository canteenRepository;
     private final RoomRepository roomRepository;
     private final DishRepository dishRepository;
     private final PackageRepository packageRepository;
-    private final DishService dishService; // 用于获取包含评分的 DishDto
-    private final PackageService packageService; // 用于获取完整的 PackageDto
+    private final PackageService packageService;
+
+    // 假设宴会默认时长为 2 小时，可根据实际业务需求调整或设为可配置项
+    private static final int DEFAULT_BANQUET_DURATION_HOURS = 2;
 
     /**
      * 创建新的宴会预订。
      *
      * @param request 包含预订信息的 DTO
-     * @param userId  预订用户
+     * @param userId 预订用户ID
      * @return 创建成功的宴会预订响应 DTO
      * @throws ResourceNotFoundException 如果用户、食堂、包厢、菜品或套餐不存在
-     * @throws InvalidInputException     如果包厢不可用或人数无效
+     * @throws InvalidInputException 如果包厢不可用、人数无效或菜品数量无效
      */
     @Override
     @Transactional
-    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userId)
-    {
+    public BanquetReservationResponse createBanquetReservation(BanquetReservationRequest request, String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         Canteen canteen = canteenRepository.findById(request.getCanteenId())
                 .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + request.getCanteenId()));
 
         Room room = null;
-        if (request.getRoomId() != null)
-        {
+        if (request.getRoomId() != null) {
             room = roomRepository.findById(request.getRoomId())
                     .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + request.getRoomId()));
 
             // 检查包厢可用性（创建时不需要排除任何现有预订）
-            if (!isRoomAvailable(room.getRoomId(), request.getEventDate(), request.getEventTime(), null))
-            {
+            if (!isRoomAvailable(room.getRoomId(), request.getEventDate(), request.getEventTime(), null)) {
                 throw new InvalidInputException("Room " + room.getName() + " is not available at the requested date and time.");
             }
             // 检查人数是否符合包厢容量
-            if (request.getNumberOfGuests() > room.getCapacity())
-            {
+            if (request.getNumberOfGuests() > room.getCapacity()) {
                 throw new InvalidInputException("Number of guests (" + request.getNumberOfGuests() + ") exceeds room capacity (" + room.getCapacity() + ").");
             }
         }
 
-        Set<Dish> selectedDishes = new HashSet<>();
-        if (request.getSelectedDishIds() != null && !request.getSelectedDishIds().isEmpty())
-        {
-            selectedDishes = request.getSelectedDishIds().stream()
-                    .map(dishId -> dishRepository.findById(dishId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Custom dish not found with ID: " + dishId)))
-                    .collect(Collectors.toSet());
+        Set<BanquetReservationDishItem> selectedDishItems = new HashSet<>();
+        // 处理定制菜品项
+        if (request.getSelectedDishItems() != null && !request.getSelectedDishItems().isEmpty()) {
+            for (BanquetReservationDishItemDto itemDto : request.getSelectedDishItems()) {
+                if (itemDto.getQuantity() <= 0) {
+                    throw new InvalidInputException("Dish quantity must be greater than zero for dish ID: " + itemDto.getDishId());
+                }
+                Dish dish = dishRepository.findById(itemDto.getDishId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Custom dish not found with ID: " + itemDto.getDishId()));
+
+                BanquetReservationDishItem dishItem = new BanquetReservationDishItem();
+                dishItem.setDish(dish);
+                dishItem.setQuantity(itemDto.getQuantity());
+                dishItem.setSubtotal(dish.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
+                // banquetReservation 会在保存 reservation 后设置
+                selectedDishItems.add(dishItem);
+            }
         }
 
-
         Set<Package> selectedPackages = new HashSet<>();
-        if (request.getSelectedPackageIds() != null && !request.getSelectedPackageIds().isEmpty())
-        {
+        if (request.getSelectedPackageIds() != null && !request.getSelectedPackageIds().isEmpty()) {
             selectedPackages = request.getSelectedPackageIds().stream()
                     .map(packageId -> packageRepository.findById(packageId)
                             .orElseThrow(() -> new ResourceNotFoundException("Package not found with ID: " + packageId)))
@@ -101,7 +115,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
         }
 
         // 计算总价
-        BigDecimal totalPrice = calculateBanquetPrice(room, selectedDishes, selectedPackages);
+        BigDecimal totalPrice = calculateBanquetPrice(room, selectedDishItems, selectedPackages);
 
         BanquetReservation reservation = new BanquetReservation();
         reservation.setUser(user);
@@ -118,10 +132,16 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
         reservation.setSpecialRequests(request.getSpecialRequests());
         reservation.setTotalPrice(totalPrice); // 设置计算后的总价
         reservation.setStatus(BanquetStatus.PENDING); // 默认待确认状态
-        reservation.setSelectedDishes(selectedDishes);
         reservation.setSelectedPackages(selectedPackages);
 
+        // 设置定制菜品项的关联
+        for (BanquetReservationDishItem item : selectedDishItems) {
+            item.setBanquetReservation(reservation); // 设置反向关联
+        }
+        reservation.setSelectedDishItems(selectedDishItems);
+
         BanquetReservation savedReservation = banquetReservationRepository.save(reservation);
+        // Cascading Save 将会自动保存 selectedDishItems
         return convertToDto(savedReservation);
     }
 
@@ -134,8 +154,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      */
     @Override
     @Transactional(readOnly = true)
-    public BanquetReservationResponse getBanquetReservationById(String banquetId)
-    {
+    public BanquetReservationResponse getBanquetReservationById(String banquetId) {
         BanquetReservation reservation = banquetReservationRepository.findById(banquetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
         return convertToDto(reservation);
@@ -148,8 +167,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      */
     @Override
     @Transactional(readOnly = true)
-    public List<BanquetReservationResponse> getAllBanquetReservations()
-    {
+    public List<BanquetReservationResponse> getAllBanquetReservations() {
         return banquetReservationRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -164,8 +182,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      */
     @Override
     @Transactional(readOnly = true)
-    public List<BanquetReservationResponse> getBanquetReservationsByUserId(String userId)
-    {
+    public List<BanquetReservationResponse> getBanquetReservationsByUserId(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         List<BanquetReservation> reservations = banquetReservationRepository.findByUser(user);
@@ -183,102 +200,13 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      */
     @Override
     @Transactional(readOnly = true)
-    public List<BanquetReservationResponse> getBanquetReservationsByCanteenId(String canteenId)
-    {
+    public List<BanquetReservationResponse> getBanquetReservationsByCanteenId(String canteenId) {
         Canteen canteen = canteenRepository.findById(canteenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + canteenId));
         List<BanquetReservation> reservations = banquetReservationRepository.findByCanteen(canteen);
         return reservations.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 更新宴会预订信息。
-     *
-     * @param banquetId      要更新的宴会预订ID
-     * @param updatedRequest 包含更新信息的宴会预订请求 DTO
-     * @return 更新后的宴会预订响应 DTO
-     * @throws ResourceNotFoundException 如果预订、用户、食堂、包厢、菜品或套餐不存在
-     * @throws InvalidInputException     如果包厢不可用、人数无效或用户没有权限
-     */
-    @Override
-    @Transactional
-    public BanquetReservationResponse updateBanquetReservation(String banquetId, BanquetReservationRequest updatedRequest)
-    {
-        BanquetReservation existingReservation = banquetReservationRepository.findById(banquetId)
-                .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
-
-        // 权限检查：只有 PENDING 状态的预订才能被用户修改内容（管理员可以修改任何状态）
-        // 这里简化为只有 PENDING 状态可修改，更复杂的权限控制应在 Spring Security 中实现
-        if (existingReservation.getStatus() != BanquetStatus.PENDING)
-        {
-            throw new InvalidInputException("Only pending reservations can be updated by users.");
-        }
-
-        // 更新食堂
-        Canteen canteen = canteenRepository.findById(updatedRequest.getCanteenId())
-                .orElseThrow(() -> new ResourceNotFoundException("Canteen not found with ID: " + updatedRequest.getCanteenId()));
-        existingReservation.setCanteen(canteen);
-
-        // 更新包厢 (如果需要)
-        Room newRoom = null;
-        if (updatedRequest.getRoomId() != null)
-        {
-            newRoom = roomRepository.findById(updatedRequest.getRoomId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + updatedRequest.getRoomId()));
-
-            // 检查新包厢的可用性，需要排除当前正在更新的预订
-            if (!isRoomAvailable(newRoom.getRoomId(), updatedRequest.getEventDate(), updatedRequest.getEventTime(), banquetId))
-            {
-                throw new InvalidInputException("New room " + newRoom.getName() + " is not available at the requested date and time.");
-            }
-            if (updatedRequest.getNumberOfGuests() > newRoom.getCapacity())
-            {
-                throw new InvalidInputException("Number of guests (" + updatedRequest.getNumberOfGuests() + ") exceeds new room capacity (" + newRoom.getCapacity() + ").");
-            }
-        }
-        existingReservation.setRoom(newRoom); // 如果 roomId 为 null，则移除包厢
-
-        // 更新其他基本信息
-        existingReservation.setEventDate(updatedRequest.getEventDate());
-        existingReservation.setEventTime(updatedRequest.getEventTime());
-        existingReservation.setNumberOfGuests(updatedRequest.getNumberOfGuests());
-        existingReservation.setContactName(updatedRequest.getContactName());
-        existingReservation.setContactPhoneNumber(updatedRequest.getContactPhoneNumber());
-        existingReservation.setPurpose(updatedRequest.getPurpose());
-        existingReservation.setCustomMenuRequest(updatedRequest.getCustomMenuRequest());
-        existingReservation.setHasBirthdayCake(updatedRequest.getHasBirthdayCake() != null ? updatedRequest.getHasBirthdayCake() : false);
-        existingReservation.setSpecialRequests(updatedRequest.getSpecialRequests());
-
-        // 更新定制菜品
-        Set<Dish> updatedDishes = new HashSet<>();
-        if (updatedRequest.getSelectedDishIds() != null)
-        { // 修正：使用 getSelectedDishIds
-            updatedDishes = updatedRequest.getSelectedDishIds().stream()
-                    .map(dishId -> dishRepository.findById(dishId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Custom dish not found with ID: " + dishId)))
-                    .collect(Collectors.toSet());
-        }
-        existingReservation.setSelectedDishes(updatedDishes);
-
-        // 更新套餐
-        Set<Package> updatedPackages = new HashSet<>();
-        if (updatedRequest.getSelectedPackageIds() != null)
-        { // 修正：使用 getSelectedPackageIds
-            updatedPackages = updatedRequest.getSelectedPackageIds().stream()
-                    .map(packageId -> packageRepository.findById(packageId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Package not found with ID: " + packageId)))
-                    .collect(Collectors.toSet());
-        }
-        existingReservation.setSelectedPackages(updatedPackages);
-
-        // 重新计算总价
-        BigDecimal newTotalPrice = calculateBanquetPrice(newRoom, updatedDishes, updatedPackages);
-        existingReservation.setTotalPrice(newTotalPrice);
-
-        BanquetReservation savedReservation = banquetReservationRepository.save(existingReservation);
-        return convertToDto(savedReservation);
     }
 
     /**
@@ -289,29 +217,25 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * @param newStatus 新的预订状态
      * @return 更新后的宴会预订响应 DTO
      * @throws ResourceNotFoundException 如果预订不存在
-     * @throws InvalidInputException     如果状态转换无效
+     * @throws InvalidInputException 如果状态转换无效
      */
     @Override
     @Transactional
-    public BanquetReservationResponse updateBanquetStatus(String banquetId, BanquetStatus newStatus)
-    {
+    public BanquetReservationResponse updateBanquetStatus(String banquetId, BanquetStatus newStatus) {
         BanquetReservation reservation = banquetReservationRepository.findById(banquetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
 
         // 简单的状态转换逻辑示例 (可以根据业务需求扩展更复杂的规则)
         // 例如：PENDING -> CONFIRMED/CANCELLED, CONFIRMED -> COMPLETED/CANCELLED
         // 不允许从 COMPLETED 或 CANCELLED 转换回 PENDING/CONFIRMED
-        if (reservation.getStatus() == BanquetStatus.CANCELLED || reservation.getStatus() == BanquetStatus.COMPLETED)
-        {
-            if (newStatus != BanquetStatus.CANCELLED && newStatus != BanquetStatus.COMPLETED)
-            {
+        if (reservation.getStatus() == BanquetStatus.CANCELLED || reservation.getStatus() == BanquetStatus.COMPLETED) {
+            if (newStatus != BanquetStatus.CANCELLED && newStatus != BanquetStatus.COMPLETED) {
                 throw new InvalidInputException("Cannot change status from " + reservation.getStatus() + " to " + newStatus);
             }
         }
 
         reservation.setStatus(newStatus);
-        if (newStatus == BanquetStatus.CONFIRMED && reservation.getConfirmationDate() == null)
-        {
+        if (newStatus == BanquetStatus.CONFIRMED && reservation.getConfirmationDate() == null) {
             reservation.setConfirmationDate(LocalDateTime.now());
         }
         BanquetReservation updatedReservation = banquetReservationRepository.save(reservation);
@@ -322,29 +246,24 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 取消宴会预订。
      *
      * @param banquetId 宴会预订ID
-     * @param userId    操作用户名 (用于权限检查，确保只有预订所有者或管理员可以取消)
+     * @param userId 操作用户ID (用于权限检查，确保只有预订所有者或管理员可以取消)
      * @throws ResourceNotFoundException 如果宴会预订不存在
-     * @throws InvalidInputException     如果预订状态不允许取消或用户没有权限
+     * @throws InvalidInputException 如果预订状态不允许取消或用户没有权限
      */
     @Override
     @Transactional
-    public void cancelBanquetReservation(String banquetId, String userId)
-    {
+    public void cancelBanquetReservation(String banquetId, String userId) {
         BanquetReservation reservation = banquetReservationRepository.findById(banquetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Banquet reservation not found with ID: " + banquetId));
-        // 从数据库中获取当前用户信息
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
         // 权限检查：确保只有预订所有者或管理员才能取消
-        if (!reservation.getUser().getUserId().equals(userId) && !(user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.STAFF))
-        {
+        // 实际应用中，这里需要通过 Spring Security 获取当前用户的角色进行判断
+        if (!reservation.getUser().getUserId().equals(userId) /* && !currentUserIsAdmin */) {
             throw new InvalidInputException("You are not authorized to cancel this reservation.");
         }
 
         // 检查预订状态是否允许取消
-        if (reservation.getStatus() == BanquetStatus.COMPLETED || reservation.getStatus() == BanquetStatus.CANCELLED)
-        {
+        if (reservation.getStatus() == BanquetStatus.COMPLETED || reservation.getStatus() == BanquetStatus.CANCELLED) {
             throw new InvalidInputException("Reservation cannot be cancelled as its current status is " + reservation.getStatus());
         }
 
@@ -356,54 +275,40 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 检查某个包厢在指定日期和时间段是否可用。
      * 考虑时间段重叠。
      *
-     * @param roomId             包厢ID
-     * @param date               预订日期
-     * @param requestedTime      预订开始时间
+     * @param roomId 包厢ID
+     * @param date 预订日期
+     * @param requestedTime 预订开始时间
      * @param banquetIdToExclude 可选参数，在更新预订时排除当前预订ID
      * @return 如果包厢可用则为 true，否则为 false
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean isRoomAvailable(String roomId, LocalDate date, LocalTime requestedTime, String banquetIdToExclude)
-    {
+    public boolean isRoomAvailable(String roomId, LocalDate date, LocalTime requestedTime, String banquetIdToExclude) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: " + roomId));
 
         // 获取该包厢在指定日期的所有非取消/完成状态的预订
-        // 注意：这里获取的是事件开始日期为 'date' 的所有预订。
         List<BanquetReservation> existingReservations = banquetReservationRepository
                 .findByRoomAndEventDate(room, date);
 
-        // 将请求的开始时间转换为 LocalDateTime，以便正确处理跨午夜的情况
-        LocalDateTime requestedStartDateTime = date.atTime(requestedTime);
-        // 计算请求的结束时间，这会自动处理日期的跨越
-        LocalDateTime requestedEndDateTime = requestedStartDateTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS);
+        LocalTime requestedEndTime = requestedTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS);
 
-        for (BanquetReservation existingReservation : existingReservations)
-        {
+        for (BanquetReservation existingReservation : existingReservations) {
             // 如果是更新操作，跳过当前正在更新的预订
-            if (existingReservation.getBanquetId().equals(banquetIdToExclude))
-            {
+            if (existingReservation.getBanquetId().equals(banquetIdToExclude)) {
                 continue;
             }
 
             // 忽略已取消或已完成的预订
-            // 这里的逻辑与你的代码保持一致，如果取消或完成的预订仍然在查询结果中，则跳过
-            if (existingReservation.getStatus() == BanquetStatus.CANCELLED || existingReservation.getStatus() == BanquetStatus.COMPLETED)
-            {
+            if (existingReservation.getStatus() == BanquetStatus.CANCELLED || existingReservation.getStatus() == BanquetStatus.COMPLETED) {
                 continue;
             }
 
-            // 将现有预订的开始时间转换为 LocalDateTime
-            // 现有预订的 eventDate 已经是 `date`，所以直接结合
-            LocalDateTime existingStartDateTime = existingReservation.getEventDate().atTime(existingReservation.getEventTime());
-            // 计算现有预订的结束时间，这也会自动处理日期的跨越
-            LocalDateTime existingEndDateTime = existingStartDateTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS); // 假设现有预订也按默认时长
+            LocalTime existingStartTime = existingReservation.getEventTime();
+            LocalTime existingEndTime = existingStartTime.plusHours(DEFAULT_BANQUET_DURATION_HOURS); // 假设现有预订也按默认时长
 
             // 检查时间段是否重叠：(start1 < end2 AND end1 > start2)
-            // 使用 LocalDateTime 进行比较，这能正确处理跨日期的情况
-            if (requestedStartDateTime.isBefore(existingEndDateTime) && requestedEndDateTime.isAfter(existingStartDateTime))
-            {
+            if (requestedTime.isBefore(existingEndTime) && requestedEndTime.isAfter(existingStartTime)) {
                 return false; // 存在重叠，包厢不可用
             }
         }
@@ -414,32 +319,27 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * 辅助方法：计算宴会预订的总价。
      * 总价 = 包厢基础费用 + 所有定制菜品价格之和 + 所有套餐价格之和。
      *
-     * @param room             预订的包厢实体
-     * @param selectedDishes   选择的单品菜品集合
+     * @param room 预订的包厢实体
+     * @param selectedDishItems 选择的单品菜品项集合（包含数量）
      * @param selectedPackages 选择的套餐集合
      * @return 计算出的总价
      */
-    private BigDecimal calculateBanquetPrice(Room room, Set<Dish> selectedDishes, Set<Package> selectedPackages)
-    {
+    private BigDecimal calculateBanquetPrice(Room room, Set<BanquetReservationDishItem> selectedDishItems, Set<Package> selectedPackages) {
         BigDecimal totalPrice = BigDecimal.ZERO;
 
-        if (room != null)
-        {
+        if (room != null) {
             totalPrice = totalPrice.add(room.getBaseFee());
         }
 
-        if (selectedDishes != null)
-        {
-            for (Dish dish : selectedDishes)
-            {
-                totalPrice = totalPrice.add(dish.getPrice());
+        // 遍历菜品项，根据数量累加价格
+        if (selectedDishItems != null) {
+            for (BanquetReservationDishItem item : selectedDishItems) {
+                totalPrice = totalPrice.add(item.getSubtotal()); // 使用小计金额
             }
         }
 
-        if (selectedPackages != null)
-        {
-            for (Package pkg : selectedPackages)
-            {
+        if (selectedPackages != null) {
+            for (Package pkg : selectedPackages) {
                 totalPrice = totalPrice.add(pkg.getPrice());
             }
         }
@@ -452,16 +352,21 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
      * @param reservation BanquetReservation 实体
      * @return BanquetReservationResponse DTO
      */
-    private BanquetReservationResponse convertToDto(BanquetReservation reservation)
-    {
-        List<String> customDishIds = reservation.getSelectedDishes().stream()
-                .map(Dish::getDishId)
-                .collect(Collectors.toList());
-        List<DishDto> customDishDtos = reservation.getSelectedDishes().stream()
-                .map(Dish::getDishId) // 先获取ID
-                .map(dishService::getDishById) // 再通过服务获取DTO
+    private BanquetReservationResponse convertToDto(BanquetReservation reservation) {
+        // 转换定制菜品项
+        List<BanquetReservationDishItemDto> customDishItemDtos = reservation.getSelectedDishItems().stream()
+                .map(item -> new BanquetReservationDishItemDto(
+                        item.getBanquetReservationDishItemId(),
+                        item.getBanquetReservation().getBanquetId(),
+                        item.getDish().getDishId(),
+                        item.getDish().getName(),
+                        item.getDish().getPrice(),
+                        item.getQuantity(),
+                        item.getSubtotal()
+                ))
                 .collect(Collectors.toList());
 
+        // 转换套餐
         List<String> packageIds = reservation.getSelectedPackages().stream()
                 .map(Package::getPackageId)
                 .collect(Collectors.toList());
@@ -487,12 +392,11 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
                 reservation.getCustomMenuRequest(),
                 reservation.getHasBirthdayCake(),
                 reservation.getSpecialRequests(),
-                reservation.getTotalPrice(), // 新增：总价
+                reservation.getTotalPrice(),
                 reservation.getStatus(),
                 reservation.getConfirmationDate(),
                 reservation.getCreatedAt(),
-                customDishIds,
-                customDishDtos,
+                customDishItemDtos, // 返回新的菜品项 DTO 列表
                 packageIds,
                 packageDtos
         );

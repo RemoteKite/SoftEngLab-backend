@@ -1,6 +1,11 @@
 package com.harukite.canteen.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +21,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BanquetReservationRequest
-{
+public class BanquetReservationRequest {
 
     @NotBlank(message = "Canteen ID cannot be empty")
     private String canteenId;
@@ -47,10 +51,10 @@ public class BanquetReservationRequest
     @Size(max = 255, message = "Purpose cannot exceed 255 characters")
     private String purpose;
 
-    // 定制菜单选项
-    private List<String> selectedDishIds;
+    // 定制菜单选项：现在是菜品项列表，包含 dishId 和 quantity
+    private List<BanquetReservationDishItemDto> selectedDishItems; // 修改：使用 BanquetReservationDishItemDto 列表
 
-    private List<String> selectedPackageIds;
+    private List<String> selectedPackageIds; // 修正：使用 selectedPackageIds (这里依然是套餐ID，没有数量需求)
 
     private Boolean hasBirthdayCake;
 

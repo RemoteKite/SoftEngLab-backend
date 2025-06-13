@@ -339,19 +339,22 @@ COMMENT ON COLUMN Banquet_Reservations.confirmation_date IS '确认时间';
 COMMENT ON COLUMN Banquet_Reservations.created_at IS '预订创建时间';
 
 
--- 19. 宴会预订-菜品关联表 (Banquet_Reservation_Dishes)
--- 存储宴会预订中定制的单品菜品
-CREATE TABLE Banquet_Reservation_Dishes
-(
+-- 19. 宴会预订-菜品项表 (Banquet_Reservation_Dishes) - 修改为独立实体表
+CREATE TABLE Banquet_Reservation_Dishes (
+    banquet_reservation_dish_item_id VARCHAR(255) PRIMARY KEY, -- 新增：主键ID
     banquet_id VARCHAR(255) NOT NULL,
-    dish_id    VARCHAR(255) NOT NULL,
-    PRIMARY KEY (banquet_id, dish_id),
-    FOREIGN KEY (banquet_id) REFERENCES Banquet_Reservations (banquet_id),
-    FOREIGN KEY (dish_id) REFERENCES Dishes (dish_id)
+    dish_id VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0), -- 新增：数量
+    subtotal DECIMAL(10, 2) NOT NULL, -- 新增：小计金额
+    FOREIGN KEY (banquet_id) REFERENCES Banquet_Reservations(banquet_id) ON DELETE CASCADE, -- 级联删除
+    FOREIGN KEY (dish_id) REFERENCES Dishes(dish_id)
 );
-COMMENT ON TABLE Banquet_Reservation_Dishes IS '宴会预订中定制的单品菜品关联表';
-COMMENT ON COLUMN Banquet_Reservation_Dishes.banquet_id IS '宴会预订ID';
+COMMENT ON TABLE Banquet_Reservation_Dishes IS '宴会预订中定制的菜品项（含数量）';
+COMMENT ON COLUMN Banquet_Reservation_Dishes.banquet_reservation_dish_item_id IS '宴会预订菜品项唯一ID';
+COMMENT ON COLUMN Banquet_Reservation_Dishes.banquet_id IS '所属宴会预订ID';
 COMMENT ON COLUMN Banquet_Reservation_Dishes.dish_id IS '菜品ID';
+COMMENT ON COLUMN Banquet_Reservation_Dishes.quantity IS '菜品数量';
+COMMENT ON COLUMN Banquet_Reservation_Dishes.subtotal IS '该菜品项的小计金额';
 
 
 -- 20. 宴会预订-套餐关联表 (Banquet_Reservation_Packages)

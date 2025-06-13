@@ -18,8 +18,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BanquetReservationResponse
-{
+public class BanquetReservationResponse {
     private String banquetId;
     private String userId;
     private String username; // User's username for display
@@ -36,12 +35,11 @@ public class BanquetReservationResponse
     private String customMenuRequest;
     private Boolean hasBirthdayCake;
     private String specialRequests;
-    private BigDecimal totalPrice;
+    private BigDecimal totalPrice; // 新增：宴会总价
     private BanquetStatus status;
     private LocalDateTime confirmationDate;
     private LocalDateTime createdAt;
-    private List<String> customDishIds; // List of custom dish IDs selected
-    private List<DishDto> customDishDtos; // List of detailed Dish DTOs for custom dishes
+    private List<BanquetReservationDishItemDto> customDishItems; // 修改：列表类型改为 BanquetReservationDishItemDto
     private List<String> packageIds; // List of package IDs selected
     private List<PackageDto> packageDtos; // List of detailed Package DTOs for selected packages
 }

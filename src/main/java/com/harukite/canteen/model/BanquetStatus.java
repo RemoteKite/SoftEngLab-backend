@@ -9,10 +9,10 @@ import lombok.Getter;
 @Getter
 public enum BanquetStatus
 {
-    PENDING("pending"),
-    CONFIRMED("confirmed"),
-    CANCELLED("cancelled"),
-    COMPLETED("completed");
+    PENDING("PENDING"),
+    CONFIRMED("CONFIRMED"),
+    CANCELLED("CANCELLED"),
+    COMPLETED("COMPLETED");
 
     private final String value;
 

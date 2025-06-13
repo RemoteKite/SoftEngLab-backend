@@ -1,14 +1,12 @@
 package com.harukite.canteen.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.math.BigDecimal;
+import java.math.BigDecimal; // 导入 BigDecimal
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -24,8 +22,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BanquetReservation
-{
+public class BanquetReservation {
 
     /**
      * 宴会预订唯一ID，作为主键。
@@ -94,6 +91,8 @@ public class BanquetReservation
 
     /**
      * 定制菜单请求的文字描述。
+     * 这个字段可能不再需要，因为详细的定制菜单将通过 selectedDishItems 表示。
+     * 可以考虑移除或将其用于存储自由文本的额外菜单请求。
      */
     @Column(name = "custom_menu_request", columnDefinition = "TEXT")
     private String customMenuRequest;
@@ -116,7 +115,6 @@ public class BanquetReservation
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
-
     /**
      * 预订状态，使用枚举类型映射数据库的 ENUM。
      */
@@ -138,16 +136,15 @@ public class BanquetReservation
     private LocalDateTime createdAt;
 
     /**
-     * 宴会预订中选择的单品菜品。多对多关系。
-     * 拥有方，负责维护中间表 'banquet_reservation_dishes'。
+     * 宴会预订中选择的定制菜品项。一对多关系。
+     * mappedBy 指向 BanquetReservationDishItem 实体中拥有关系管理权的字段名称 ("banquetReservation")。
+     * CascadeType.ALL 表示对 BanquetReservation 的操作会级联到 BanquetReservationDishItem。
+     * orphanRemoval = true 表示如果从集合中移除 BanquetReservationDishItem，它也会从数据库中删除。
      */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "banquet_reservation_dishes",
-            joinColumns = @JoinColumn(name = "banquet_id"),
-            inverseJoinColumns = @JoinColumn(name = "dish_id")
-    )
-    private Set<Dish> selectedDishes = new HashSet<>();
+    @OneToMany(mappedBy = "banquetReservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<BanquetReservationDishItem> selectedDishItems = new HashSet<>(); // 新增：定制菜品项集合
 
     /**
      * 宴会预订中选择的套餐。多对多关系。
@@ -165,10 +162,8 @@ public class BanquetReservation
      * 在实体持久化前，自动为 banquetId 生成一个 UUID。
      */
     @PrePersist
-    protected void onCreate()
-    {
-        if (this.banquetId == null)
-        {
+    protected void onCreate() {
+        if (this.banquetId == null) {
             this.banquetId = UUID.randomUUID().toString();
         }
     }

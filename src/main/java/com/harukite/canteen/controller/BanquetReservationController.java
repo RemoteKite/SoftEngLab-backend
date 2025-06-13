@@ -145,26 +145,6 @@ public class BanquetReservationController
     }
 
     /**
-     * 更新宴会预订信息。
-     * URL: PUT /api/banquet/{id}
-     * (需要管理员或工作人员权限，或预订所有者)
-     *
-     * @param id      要更新的宴会预订ID
-     * @param request 包含更新信息的宴会预订请求 DTO
-     * @return 更新后的宴会预订响应 DTO
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @banquetReservationService.getBanquetReservationById(#id).userId == (userRepository.findByUsername(authentication.name)).getUserId()")
-    // 只有管理员/工作人员或预订所有者才能更新
-    public ResponseEntity<BanquetReservationResponse> updateBanquetReservation(
-            @PathVariable String id,
-            @Valid @RequestBody BanquetReservationRequest request)
-    {
-        BanquetReservationResponse updatedReservation = banquetReservationService.updateBanquetReservation(id, request);
-        return ResponseEntity.ok(updatedReservation);
-    }
-
-    /**
      * 更新宴会预订状态。
      * URL: PUT /api/banquet/{id}/status
      * (通常需要管理员或食堂工作人员权限)

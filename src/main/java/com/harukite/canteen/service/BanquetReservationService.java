@@ -56,15 +56,6 @@ public interface BanquetReservationService
     List<BanquetReservationResponse> getBanquetReservationsByCanteenId(String canteenId);
 
     /**
-     * 更新宴会预订信息。
-     *
-     * @param banquetId      要更新的宴会预订ID
-     * @param updatedRequest 包含更新信息的宴会预订请求 DTO
-     * @return 更新后的宴会预订响应 DTO
-     */
-    BanquetReservationResponse updateBanquetReservation(String banquetId, BanquetReservationRequest updatedRequest);
-
-    /**
      * 更新宴会预订状态。
      *
      * @param banquetId 宴会预订ID
