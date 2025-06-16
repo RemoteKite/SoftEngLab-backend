@@ -81,6 +81,7 @@ public class SecurityConfig
                         .requestMatchers("/api/auth/**").permitAll()
                         // 允许所有用户访问 /api/canteens 下的所有路径
                         .requestMatchers("/api/canteens/**").permitAll() // 确保这条规则在更具体的规则之前
+                        .requestMatchers("/api/get-advice").permitAll() // 允许所有用户访问获取建议的接口
                         // 允许 Swagger UI 和 API 文档访问 (如果需要)
                         .requestMatchers(
                                 "/v3/api-docs/**",
