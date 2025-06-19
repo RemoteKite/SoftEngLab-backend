@@ -137,6 +137,7 @@ public class DietaryTagServiceImpl implements DietaryTagService
             throw new IllegalStateException("Dietary tag is currently associated with dishes and cannot be deleted.");
         }
 
+        dietaryTagRepository.delete(dietaryTag);
     }
 
     /**
