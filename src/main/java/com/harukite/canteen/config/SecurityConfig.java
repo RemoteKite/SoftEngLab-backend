@@ -30,6 +30,7 @@ public class SecurityConfig
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint; // 注入自定义的认证入口点
 
     /**
      * 定义一个 PasswordEncoder 的 Bean。
@@ -68,20 +69,19 @@ public class SecurityConfig
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         // 创建 DaoAuthenticationProvider 实例
-        // 不再将其声明为 @Bean，以避免 Spring 的自动配置警告
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService); // 设置自定义的 UserDetailsService
         authProvider.setPasswordEncoder(passwordEncoder()); // 设置密码编码器
 
         http
                 .csrf(csrf -> csrf.disable()) // 禁用 CSRF，因为我们使用 JWT 进行无状态认证
-                .cors(Customizer.withDefaults()) // !!! 关键：启用 CORS 配置，它会查找 CorsConfigurationSource 或 WebMvcConfigurer Bean
+                .cors(Customizer.withDefaults()) // 启用 CORS 配置
                 .authorizeHttpRequests(authorize -> authorize
                         // 允许匿名访问的公共接口，例如注册和登录
                         .requestMatchers("/api/auth/**").permitAll()
                         // 允许所有用户访问 /api/canteens 下的所有路径
-                        .requestMatchers("/api/canteens/**").permitAll() // 确保这条规则在更具体的规则之前
-                        .requestMatchers("/api/get-advice").permitAll() // 允许所有用户访问获取建议的接口
+                        .requestMatchers("/api/canteens/**").permitAll()
+                        .requestMatchers("/api/get-advice").permitAll()
                         // 允许 Swagger UI 和 API 文档访问 (如果需要)
                         .requestMatchers(
                                 "/v3/api-docs/**",
@@ -94,11 +94,15 @@ public class SecurityConfig
                         // 其他所有请求都需要认证
                         .anyRequest().authenticated()
                 )
+                // 配置异常处理，特别是认证入口点
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)) // 关键：将自定义的 JwtAuthenticationEntryPoint 注册到 Spring Security
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 设置为无状态会话，不创建和使用 HTTP 会话
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 设置为无状态会话
                 )
-                .authenticationProvider(authProvider) // 使用手动创建的 authProvider 实例
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // 在 UsernamePasswordAuthenticationFilter 之前添加 JWT 过滤器
+                .authenticationProvider(authProvider) // 使用认证提供者
+                // 在 UsernamePasswordAuthenticationFilter 之前添加 JWT 过滤器
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
