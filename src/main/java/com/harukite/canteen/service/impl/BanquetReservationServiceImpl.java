@@ -6,14 +6,8 @@ import com.harukite.canteen.dto.BanquetReservationDishItemDto; // 导入新增�
 import com.harukite.canteen.dto.PackageDto;
 import com.harukite.canteen.exception.InvalidInputException;
 import com.harukite.canteen.exception.ResourceNotFoundException;
-import com.harukite.canteen.model.BanquetReservation;
-import com.harukite.canteen.model.BanquetReservationDishItem; // 导入新增的实体
-import com.harukite.canteen.model.BanquetStatus;
-import com.harukite.canteen.model.Canteen;
-import com.harukite.canteen.model.Dish;
+import com.harukite.canteen.model.*;
 import com.harukite.canteen.model.Package;
-import com.harukite.canteen.model.Room;
-import com.harukite.canteen.model.User;
 import com.harukite.canteen.repository.BanquetReservationRepository;
 import com.harukite.canteen.repository.CanteenRepository;
 import com.harukite.canteen.repository.DishRepository;
@@ -258,7 +252,7 @@ public class BanquetReservationServiceImpl implements BanquetReservationService
 
         // 权限检查：确保只有预订所有者或管理员才能取消
         // 实际应用中，这里需要通过 Spring Security 获取当前用户的角色进行判断
-        if (!reservation.getUser().getUserId().equals(userId) /* && !currentUserIsAdmin */) {
+        if (!reservation.getUser().getUserId().equals(userId) && (reservation.getUser().getRole() != UserRole.ADMIN && reservation.getUser().getRole() != UserRole.STAFF)) {
             throw new InvalidInputException("You are not authorized to cancel this reservation.");
         }
 

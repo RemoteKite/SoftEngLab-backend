@@ -144,7 +144,7 @@ public class OrderController
      * @return 无内容响应
      */
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF') or @orderService.getOrderById(#id).getUserId() == (userRepository.findByUsername(authentication.name)).getUserId()") // 允许用户取消自己的订单或管理员取消任何订单
+    @PreAuthorize("isAuthenticated()")// 允许用户取消自己的订单或管理员取消任何订单
     public ResponseEntity<Void> cancelOrder(@PathVariable String id)
     {
         // 从 Spring Security 认证上下文中获取当前用户ID

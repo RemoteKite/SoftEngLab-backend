@@ -188,7 +188,7 @@ public class OrderServiceImpl implements OrderService
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
 
         // 权限检查：确保只有订单所有者或具有管理员权限的用户才能取消
-        if (!order.getUser().getUserId().equals(userId) /* && !userRepository.findById(userId).get().getRole().equals(UserRole.ADMIN) */)
+        if (!order.getUser().getUserId().equals(userId)  && (order.getUser().getRole() != UserRole.ADMIN && order.getUser().getRole() != UserRole.STAFF))
         {
             // 假设这里有获取用户角色并进行判断的逻辑
             // 暂时简化处理，只允许订单所有者取消
